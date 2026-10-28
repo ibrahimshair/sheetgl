@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ColumnDef } from '../types/grid';
 import { IGridThemeTokens } from '../theme/IGridTheme';
 import { IGridLocale } from '../i18n/IGridLocale';
@@ -239,7 +239,7 @@ function compileSemanticDateTreeFilter(
 /**
  * Formats a raw cell value identically to how the cell painter renders it on Canvas.
  */
-export function formatCellStructureValue(
+function formatCellStructureValue(
   rawVal: any,
   column: ColumnDef,
   locale: IGridLocale
@@ -623,12 +623,15 @@ export const HeaderFilterPopover: React.FC<HeaderFilterPopoverProps> = ({
     return () => document.removeEventListener('mousedown', handleOutside, true);
   }, [onClose]);
 
-  const formatItemLabel = (it: DistinctItem): string => {
-    if (isDateCol || (typeof it.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(it.value.trim()))) {
-      return FilterEngine.formatLocalizedDate(it.value, locale.code, colType === 'datetime');
-    }
-    return formatCellStructureValue(it.value, column, locale);
-  };
+  const formatItemLabel = useCallback(
+    (it: DistinctItem): string => {
+      if (isDateCol || (typeof it.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(it.value.trim()))) {
+        return FilterEngine.formatLocalizedDate(it.value, locale.code, colType === 'datetime');
+      }
+      return formatCellStructureValue(it.value, column, locale);
+    },
+    [isDateCol, colType, column, locale]
+  );
 
   // Updates non-date condition inputs without mutating or corrupting Value List (selectedSet)
   const syncConditionToSelection = (
@@ -929,7 +932,7 @@ export const HeaderFilterPopover: React.FC<HeaderFilterPopoverProps> = ({
       }
     }
     return [...blanks, ...others];
-  }, [allItems, search, column, locale, isDateCol, dateHierarchy]);
+  }, [allItems, search, isDateCol, dateHierarchy, formatItemLabel]);
 
   // Numeric column min/max/average statistics for quick condition presets
   const numericColumnStats = useMemo(() => {
