@@ -398,7 +398,7 @@ export class RemoteDataStore implements IDataStore {
   ): DistinctItem[] {
     const items: DistinctItem[] = [];
     if (blankCount && blankCount > 0) {
-      items.push({
+      items.unshift({
         value: BLANK_FILTER_TOKEN,
         label: '(Blank)',
         count: blankCount,
@@ -520,8 +520,32 @@ export class RemoteDataStore implements IDataStore {
         };
       });
 
-      this.distinctCache.set(cacheKey, normalizedItems);
-      return normalizedItems;
+      // Ensure (Blank) is placed at the top of distinct items
+      const blanks: DistinctItem[] = [];
+      const nonBlanks: DistinctItem[] = [];
+      for (const it of normalizedItems) {
+        if (
+          it.value === BLANK_FILTER_TOKEN ||
+          it.value === '' ||
+          it.value === null ||
+          it.value === undefined ||
+          it.label === '(Blank)' ||
+          it.label === '(Boş)' ||
+          it.label === '(Boş / Blank)'
+        ) {
+          blanks.push({
+            ...it,
+            value: BLANK_FILTER_TOKEN,
+            label: it.label || '(Blank)',
+          });
+        } else {
+          nonBlanks.push(it);
+        }
+      }
+      const finalItems = [...blanks, ...nonBlanks];
+
+      this.distinctCache.set(cacheKey, finalItems);
+      return finalItems;
     } catch {
       return [];
     }

@@ -505,6 +505,30 @@ export const HeaderFilterPopover: React.FC<HeaderFilterPopoverProps> = ({
           processedRes = unpackedItems;
         }
 
+        // Always guarantee that Blank is placed at the very top (index 0) of the distinct values list
+        const blanks: DistinctItem[] = [];
+        const nonBlanks: DistinctItem[] = [];
+        for (const it of processedRes) {
+          if (
+            it.value === BLANK_FILTER_TOKEN ||
+            it.value === '' ||
+            it.value === null ||
+            it.value === undefined ||
+            it.label === '(Blank)' ||
+            it.label === '(Boş)' ||
+            it.label === '(Boş / Blank)'
+          ) {
+            blanks.push({
+              ...it,
+              value: BLANK_FILTER_TOKEN,
+              label: locale.emptyText || '(Blank)',
+            });
+          } else {
+            nonBlanks.push(it);
+          }
+        }
+        processedRes = [...blanks, ...nonBlanks];
+
         setAllItems(processedRes);
 
         // Initialize Year > Month > Day tree expansion for date columns
@@ -868,21 +892,43 @@ export const HeaderFilterPopover: React.FC<HeaderFilterPopoverProps> = ({
   }, [isDateCol, dateHierarchy, expandedYears, expandedMonths, search]);
 
   const visibleItems = useMemo(() => {
-    if (!search.trim()) return allItems;
-    const q = search.toLowerCase().trim();
-    if (isDateCol) {
-      const matchedRawSet = new Set<any>();
-      if (dateHierarchy.blankItem) matchedRawSet.add(dateHierarchy.blankItem.value);
-      for (const y of dateHierarchy.years) {
-        for (const rv of y.rawValues) matchedRawSet.add(rv);
+    let result = allItems;
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      if (isDateCol) {
+        const matchedRawSet = new Set<any>();
+        if (dateHierarchy.blankItem) matchedRawSet.add(dateHierarchy.blankItem.value);
+        for (const y of dateHierarchy.years) {
+          for (const rv of y.rawValues) matchedRawSet.add(rv);
+        }
+        for (const o of dateHierarchy.otherItems) matchedRawSet.add(o.value);
+        result = allItems.filter((it) => matchedRawSet.has(it.value));
+      } else {
+        result = allItems.filter((it) => {
+          const display = formatItemLabel(it).toLowerCase();
+          return display.includes(q) || String(it.value).toLowerCase().includes(q);
+        });
       }
-      for (const o of dateHierarchy.otherItems) matchedRawSet.add(o.value);
-      return allItems.filter((it) => matchedRawSet.has(it.value));
     }
-    return allItems.filter((it) => {
-      const display = formatItemLabel(it).toLowerCase();
-      return display.includes(q) || String(it.value).toLowerCase().includes(q);
-    });
+    // Always guarantee that Blank is placed at the very top (under Select All)
+    const blanks: DistinctItem[] = [];
+    const others: DistinctItem[] = [];
+    for (const it of result) {
+      if (
+        it.value === BLANK_FILTER_TOKEN ||
+        it.value === '' ||
+        it.value === null ||
+        it.value === undefined ||
+        it.label === '(Blank)' ||
+        it.label === '(Boş)' ||
+        it.label === '(Boş / Blank)'
+      ) {
+        blanks.push(it);
+      } else {
+        others.push(it);
+      }
+    }
+    return [...blanks, ...others];
   }, [allItems, search, column, locale, isDateCol, dateHierarchy]);
 
   // Numeric column min/max/average statistics for quick condition presets
