@@ -2265,7 +2265,20 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       const headerHit = geom.hitTestHeader(x, y, sl);
       if (headerHit) {
         if (headerHit.column.id === '__selection__' && rowSelectionMode === 'multiple') {
-          if (rowCount > 0 && selectedRowKeysSet.size >= rowCount) {
+          // Check if all visible rows in the current view are selected
+          let allVisibleSelected = rowCount > 0;
+          for (let r = 0; r < rowCount; r++) {
+            const vr = store.getViewRow(r);
+            if (vr && vr.type === 'data') {
+              const k = vr.data.uuid ?? vr.data.id ?? r;
+              if (!selectedRowKeysSet.has(k)) {
+                allVisibleSelected = false;
+                break;
+              }
+            }
+          }
+
+          if (allVisibleSelected || (rowCount > 0 && selectedRowKeysSet.size >= rowCount)) {
             setSelectedRowKeysSet(new Set());
             onSelectionChanged?.([], []);
           } else {
@@ -2274,7 +2287,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
             for (let r = 0; r < rowCount; r++) {
               const vr = store.getViewRow(r);
               if (vr && vr.type === 'data') {
-                const k = vr.data.id ?? r;
+                const k = vr.data.uuid ?? vr.data.id ?? r;
                 nextKeys.add(k);
                 nextData.push(vr.data);
               }
@@ -2412,7 +2425,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     // Row Selection Column Click ('__selection__')
     if (colDef.id === '__selection__' && vRow && vRow.type === 'data') {
       setIsDraggingSelection(false);
-      const rKey = vRow.data.id ?? hit.row;
+      const rKey = vRow.data.uuid ?? vRow.data.id ?? hit.row;
       setSelectedRowKeysSet((prev) => {
         const next = new Set(prev);
         if (rowSelectionMode === 'single') {
@@ -2430,7 +2443,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
           const rowsData: any[] = [];
           for (let r = 0; r < rowCount; r++) {
             const vr = store.getViewRow(r);
-            if (vr && vr.type === 'data' && next.has(vr.data.id ?? r)) {
+            if (vr && vr.type === 'data' && next.has(vr.data.uuid ?? vr.data.id ?? r)) {
               rowsData.push(vr.data);
             }
           }

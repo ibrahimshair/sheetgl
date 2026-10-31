@@ -163,7 +163,7 @@ export class CanvasRenderer {
         }
 
         const rowData = vRow.data;
-        const rowKey = rowData.id ?? r;
+        const rowKey = rowData.uuid ?? rowData.id ?? r;
         const isRowInserted = store.isRowInserted?.(rowKey) ?? false;
         const isRowLoading = loadingRowKeys?.has(rowKey) ?? false;
         const isRowInActiveSel = r >= normSel.minRow && r <= normSel.maxRow;
