@@ -934,6 +934,18 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       startEditingCell: (col: number, row: number, initialChar?: string) => {
         openEditorRef.current(row, col, initialChar);
       },
+      focusCell: (rowIndex: number, columnIdOrIndex: string | number, initialChar?: string) => {
+        const geom = geometryRef.current;
+        let colIdx = typeof columnIdOrIndex === 'number'
+          ? columnIdOrIndex
+          : geom.columns.findIndex((c) => c.id === columnIdOrIndex);
+        if (colIdx < 0) colIdx = 0;
+        selectCell(rowIndex, colIdx);
+        ensureCellVisible(rowIndex, colIdx);
+        requestAnimationFrame(() => {
+          openEditorRef.current(rowIndex, colIdx, initialChar);
+        });
+      },
       stopEditingCell: (cancel?: boolean) => {
         if (cancel) {
           setEditorValidationError(null);

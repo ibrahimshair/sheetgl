@@ -157,6 +157,12 @@ export interface GridApi {
   autoSizeColumn?(columnId: string): void;
 
   /**
+   * Programmatically focus and begin editing a cell by its row index and column ID (or column index).
+   * Automatically scrolls the cell into view.
+   */
+  focusCell?(rowIndex: number, columnIdOrIndex: string | number, initialChar?: string): void;
+
+  /**
    * Auto-size all visible columns to mathematically best-fit their contents.
    */
   autoSizeAllColumns?(): void;
