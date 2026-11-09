@@ -90,24 +90,36 @@ export const VISUAL_GUIDES: ColumnGuideItem[] = [
     dataType: 'void (Callback)',
     sampleValue: 'onActionClick(row, rowIndex)',
     summaryTr:
-      'Her satırın sonunda "İncele", "Detay", "Fatura PDF" veya "Onayla" gibi tıklanabilir bir buton çizer. Tablo Salt-Okunur (Read-Only) modda olsa bile çalışmaya devam eder.',
+      'Her satırın sonunda "İncele", "⚙️" veya "⋯" gibi tıklanabilir bir buton veya tıklanınca açılan zengin bir Dropdown Menü sunar. Soldan/sağdan açılma, ikonlar, yatay ayraç çizgileri (divider) ve tehlikeli işlemler (danger) destekler. Tablo Salt-Okunur (Read-Only) modda olsa bile çalışmaya devam eder.',
     summaryEn:
-      'Renders a styled interactive button inside every row. Clicking triggers onActionClick(rowData, rowIndex) even when the grid is in Read-Only mode.',
-    editorTr: 'Butona tıklandığında doğrudan onActionClick fonksiyonunu tetikler.',
-    editorEn: 'Triggers onActionClick(rowData, rowIndex) immediately on pointer down.',
+      'Renders a styled interactive button or a rich floating Dropdown Menu inside every row. Supports left/right opening alignment, Material icons/emojis, horizontal dividers, and danger action items. Operates seamlessly even in Read-Only mode.',
+    editorTr: 'Butona tıklandığında doğrudan onActionClick çağrılır veya actionMenuItems tanımlıysa sağa/sola hizalı zengin dropdown menü açılır.',
+    editorEn: 'Triggers onActionClick or opens a floating rich dropdown menu (with icons, dividers, left/right alignment) when actionMenuItems is provided.',
     propsList: [
-      { prop: 'buttonText', type: 'string', descTr: 'Buton üzerinde yazacak metin (ör. "İncele" / "Inspect")', descEn: 'Button label text (e.g. "Inspect" / "Details")' },
-      { prop: 'onActionClick', type: '(row, rowIndex) => void', descTr: 'Butona tıklandığında satır verisiyle çağrılan fonksiyon', descEn: 'Callback invoked with the clicked row data and index' },
+      { prop: 'buttonText', type: 'string', descTr: 'Buton üzerinde yazacak metin veya simge (ör. "⋯", "⚙️", "İncele")', descEn: 'Button label or icon (e.g. "⋯", "⚙️", "Inspect")' },
+      { prop: 'onActionClick', type: '(row, rowIndex) => void', descTr: 'Tekli buton tıklandığında satır verisiyle çağrılan fonksiyon', descEn: 'Callback invoked when single action button is clicked' },
+      { prop: 'actionMenuItems', type: 'ActionMenuItem[] | ((row, rowIndex) => ActionMenuItem[])', descTr: 'Tıklanınca açılacak dropdown menü öğeleri listesi veya satıra göre dinamik üreten fonksiyon', descEn: 'List of menu items or dynamic factory function returning menu items for the row' },
+      { prop: 'actionMenuAlign', type: "'left' | 'right'", descTr: 'Dropdown menünün hücreye göre sola veya sağa hizalanarak açılması (varsayılan: "right")', descEn: 'Menu alignment relative to the cell ("left" or "right", default: "right")' },
+      { prop: 'ActionMenuItem.label', type: 'string', descTr: 'Menü öğesi başlığı (ör. "Düzenle", "İndir")', descEn: 'Menu item label' },
+      { prop: 'ActionMenuItem.icon', type: 'string', descTr: 'Menü öğesi ikonu (MaterialIcon adı ör. "edit", "download" veya emoji "✏️")', descEn: 'MaterialIcon name or emoji' },
+      { prop: 'ActionMenuItem.divider', type: 'boolean', descTr: 'Öğeler arasına yatay ayırıcı çizgi ekler', descEn: 'Renders a horizontal separator line' },
+      { prop: 'ActionMenuItem.danger', type: 'boolean', descTr: 'Kırmızı tehlikeli işlem vurgusu (silme vb.)', descEn: 'Highlights destructive action in red' },
+      { prop: 'ActionMenuItem.disabled', type: 'boolean', descTr: 'Öğeyi pasif / tıklanamaz yapar', descEn: 'Disables the menu item' },
+      { prop: 'ActionMenuItem.onClick', type: '(row, rowIndex) => void', descTr: 'Menü öğesine tıklandığında çalışacak fonksiyon', descEn: 'Callback fired when the menu item is clicked' },
     ],
     sampleColumnDef: {
       id: 'actions',
-      title: 'Action (action)',
+      title: 'İşlemler',
       type: 'action',
-      width: 140,
-      buttonText: 'Inspect',
-      onActionClick: (row) => {
-        window.alert(`Row #${row.id} (${row.company}) action triggered!`);
-      },
+      width: 80,
+      buttonText: '⋯',
+      actionMenuAlign: 'right',
+      actionMenuItems: [
+        { id: 'edit', label: 'Düzenle', icon: 'edit', onClick: (row) => alert(`Düzenle: ${row.company}`) },
+        { id: 'view', label: 'Detayları Gör', icon: 'visibility', onClick: (row) => alert(`Detay: ${row.company}`) },
+        { divider: true },
+        { id: 'delete', label: 'Kaydı Sil', icon: 'delete', danger: true, onClick: (row) => alert(`Sil: ${row.company}`) },
+      ],
     },
     sampleRows: [
       { id: 1, company: 'Acme Global' },
@@ -116,13 +128,33 @@ export const VISUAL_GUIDES: ColumnGuideItem[] = [
     ],
     code: `{
   id: 'actions',
-  title: 'Actions',
+  title: 'İşlemler',
   type: 'action',
-  width: 110,
-  buttonText: 'Inspect',
-  onActionClick: (row, rowIndex) => {
-    console.log('Inspecting row:', rowIndex, row);
-  },
+  width: 80,
+  buttonText: '⋯',
+  actionMenuAlign: 'right', // 'right' | 'left'
+  actionMenuItems: (row, rowIndex) => [
+    {
+      id: 'edit',
+      label: 'Düzenle',
+      icon: 'edit',
+      onClick: (r) => console.log('Edit', r),
+    },
+    {
+      id: 'download',
+      label: 'PDF İndir',
+      icon: 'download',
+      onClick: (r) => console.log('Download', r),
+    },
+    { divider: true },
+    {
+      id: 'delete',
+      label: 'Kurumu Sil',
+      icon: 'delete',
+      danger: true,
+      onClick: (r) => console.log('Delete', r),
+    },
+  ],
 }`,
   },
 ];

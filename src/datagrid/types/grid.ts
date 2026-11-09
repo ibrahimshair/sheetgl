@@ -248,6 +248,24 @@ export interface ColumnGroupDef {
   align?: 'left' | 'center' | 'right';
 }
 
+/**
+ * Action column dropdown menu item definition.
+ */
+export interface ActionMenuItem {
+  id?: string;
+  label?: string;
+  /** MaterialIcon name (e.g. 'edit', 'delete', 'download') or emoji (e.g. '✏️') */
+  icon?: string;
+  /** Whether clicking this triggers a destructive action (renders in red) */
+  danger?: boolean;
+  /** Whether the item is disabled */
+  disabled?: boolean;
+  /** Render horizontal separator line instead of item */
+  divider?: boolean;
+  /** Callback fired when the item is clicked */
+  onClick?: (row: any, rowIndex: number) => void;
+}
+
 export interface ColumnDef {
   id: ColumnId;
   title: string;
@@ -271,6 +289,14 @@ export interface ColumnDef {
   sparklineColor?: string;
   buttonText?: string;
   onActionClick?: (row: any, rowIndex: number) => void;
+  /**
+   * Action column dropdown menu items. Can be a static list or a dynamic factory based on the row.
+   */
+  actionMenuItems?: ActionMenuItem[] | ((row: any, rowIndex: number) => ActionMenuItem[]);
+  /**
+   * Alignment of dropdown menu relative to the action cell ('right' | 'left', default: 'right').
+   */
+  actionMenuAlign?: 'left' | 'right';
   /** Custom handler when clicking PDF view button in a 'pdf' or 'file' column */
   onPdfClick?: (url: string, row: any, rowIndex: number) => void;
   /** Custom handler when clicking Open in New Tab button in a 'pdf' or 'file' column */

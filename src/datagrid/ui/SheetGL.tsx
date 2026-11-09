@@ -37,6 +37,7 @@ import { CanvasRenderer } from '../renderer/CanvasRenderer';
 import { DynamicCellEditor } from '../overlays/DynamicCellEditor';
 import { HeaderFilterPopover } from '../overlays/HeaderFilterPopover';
 import { ContextMenuOverlay, ContextMenuState } from '../overlays/ContextMenuOverlay';
+import { ActionDropdownOverlay } from '../overlays/ActionDropdownOverlay';
 import { SparklineModalOverlay, SparklineModalState } from '../overlays/SparklineModalOverlay';
 import { PdfPreviewModalOverlay, PdfPreviewModalState } from '../overlays/PdfPreviewModalOverlay';
 import { BatchChangesModal } from '../overlays/BatchChangesModal';
@@ -569,6 +570,16 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
   });
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [activeOverlay, setActiveOverlay] = useState<ActiveOverlayState | null>(null);
+  const [actionDropdown, setActionDropdown] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    align?: 'left' | 'right';
+    items: any[];
+    row: any;
+    rowIndex: number;
+  } | null>(null);
   const [editorValidationError, setEditorValidationError] = useState<string | null>(null);
   const [isEditorValidating, setIsEditorValidating] = useState<boolean>(false);
   const [headerFilterState, setHeaderFilterState] = useState<{
@@ -2516,6 +2527,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     if (onScrollbar) return; // Let native scrollbar handle thumb dragging
 
     if (activeOverlay) setActiveOverlay(null);
+    if (actionDropdown) setActionDropdown(null);
     if (headerFilterState) setHeaderFilterState(null);
     if (contextMenu) setContextMenu(null);
 
@@ -2782,6 +2794,39 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       // Action & PDF columns work even in read mode; mutable plugins check canEditCell
       const isActionOrPdf = colType === 'action' || colType === 'pdf';
       if (isActionOrPdf || canEditCell(vRow.data, colDef, hit.row, false)) {
+        // If this is an action column with actionMenuItems, open the action dropdown overlay
+        if (colType === 'action' && colDef.actionMenuItems) {
+          const rawItems = typeof colDef.actionMenuItems === 'function'
+            ? colDef.actionMenuItems(vRow.data, hit.row)
+            : colDef.actionMenuItems;
+
+          if (rawItems && rawItems.length > 0) {
+            const containerRect = containerRef.current?.getBoundingClientRect();
+            const screenRect = geom.getColumnScreenRect(hit.col, sl);
+            const cellY = geom.headerHeight + hit.row * geom.rowHeight - st;
+            const clientX = (containerRect?.left ?? 0) + screenRect.x;
+            const clientY = (containerRect?.top ?? 0) + cellY;
+
+            setIsDraggingSelection(false);
+            setFillDragState(null);
+            selectionRef.current.setActiveCell(hit.row, hit.col);
+            setSelectionVersion((v) => v + 1);
+
+            setActionDropdown({
+              x: clientX,
+              y: clientY,
+              width: screenRect.width,
+              height: geom.rowHeight,
+              align: colDef.actionMenuAlign || 'right',
+              items: rawItems,
+              row: vRow.data,
+              rowIndex: hit.row,
+            });
+            requestRender();
+            return;
+          }
+        }
+
         let shouldFocusContainer = true;
         const res = plugin.onPointerDown({
           localX: hit.localX,
@@ -4396,6 +4441,25 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
             onConfirm={executeConfirmedDelete}
             onCancel={() => {
               setDeleteConfirmModal(null);
+              containerRef.current?.focus();
+            }}
+          />
+        )}
+
+        {/* 6e. ACTION COLUMN DROPDOWN MENU OVERLAY */}
+        {actionDropdown && (
+          <ActionDropdownOverlay
+            x={actionDropdown.x}
+            y={actionDropdown.y}
+            width={actionDropdown.width}
+            height={actionDropdown.height}
+            align={actionDropdown.align}
+            items={actionDropdown.items}
+            row={actionDropdown.row}
+            rowIndex={actionDropdown.rowIndex}
+            theme={resolvedTheme}
+            onClose={() => {
+              setActionDropdown(null);
               containerRef.current?.focus();
             }}
           />
