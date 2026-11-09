@@ -39,6 +39,7 @@ export interface ContextMenuOverlayProps {
   onToggleGroupColumn: () => void;
   onSortColumn: (desc: boolean | null) => void;
   onTogglePinColumn: () => void;
+  onPinColumn?: (pin: 'left' | 'right' | false) => void;
   onToggleColumnReadonly: () => void;
   onChangeSummaryType: (summaryType: SummaryType) => void;
   onOpenSparklineModal?: () => void;
@@ -73,6 +74,7 @@ export const ContextMenuOverlay: React.FC<ContextMenuOverlayProps> = ({
   onToggleGroupColumn,
   onSortColumn,
   onTogglePinColumn,
+  onPinColumn,
   onToggleColumnReadonly,
   onChangeSummaryType,
   onOpenSparklineModal,
@@ -120,7 +122,7 @@ export const ContextMenuOverlay: React.FC<ContextMenuOverlayProps> = ({
   }, [onClose]);
 
   const menuWidth = 256;
-  const estimatedHeight = menu.targetType === 'header' ? 320 : 350;
+  const estimatedHeight = menu.targetType === 'header' ? 380 : 350;
   const safeLeft = Math.max(8, Math.min(menu.x, viewportWidth - menuWidth - 12));
   const safeTop = Math.max(8, Math.min(menu.y, viewportHeight - estimatedHeight - 12));
 
@@ -205,6 +207,49 @@ export const ContextMenuOverlay: React.FC<ContextMenuOverlayProps> = ({
     />
   );
 
+  const colPinned = menu.column?.pinned;
+  const isPinnedLeft = colPinned === true || colPinned === 'left';
+  const isPinnedRight = colPinned === 'right';
+  const isPinned = isPinnedLeft || isPinnedRight;
+
+  const handlePin = (pin: 'left' | 'right' | false) => {
+    if (onPinColumn) {
+      onPinColumn(pin);
+    } else {
+      onTogglePinColumn();
+    }
+  };
+
+  const renderPinItems = () => (
+    <>
+      {renderItem(
+        'push_pin',
+        isTR ? 'Sola Sabitle (Pin Left)' : 'Pin Column Left',
+        undefined,
+        () => handlePin(isPinnedLeft ? false : 'left'),
+        false,
+        false,
+        isPinnedLeft ? '✓' : undefined
+      )}
+      {renderItem(
+        'push_pin',
+        isTR ? 'Sağa Sabitle (Pin Right)' : 'Pin Column Right',
+        undefined,
+        () => handlePin(isPinnedRight ? false : 'right'),
+        false,
+        false,
+        isPinnedRight ? '✓' : undefined
+      )}
+      {isPinned &&
+        renderItem(
+          'close',
+          isTR ? 'Sabitlemeyi Kaldır (Unpin)' : 'Unpin Column',
+          undefined,
+          () => handlePin(false)
+        )}
+    </>
+  );
+
   const menuElement = (
     <div
       ref={menuRef}
@@ -249,18 +294,7 @@ export const ContextMenuOverlay: React.FC<ContextMenuOverlayProps> = ({
               <span>{menu.column.title}</span>
               <span>{menu.column.type.toUpperCase()}</span>
             </div>
-            {renderItem(
-              'push_pin',
-              menu.column.pinned
-                ? isTR
-                  ? 'Sabitlemeyi Kaldır (Unpin)'
-                  : 'Unpin Column'
-                : isTR
-                  ? 'Sola Sabitle (Pin Left)'
-                  : 'Pin Column Left',
-              undefined,
-              onTogglePinColumn
-            )}
+            {renderPinItems()}
           </>
         ) : (
           <>
@@ -338,18 +372,7 @@ export const ContextMenuOverlay: React.FC<ContextMenuOverlayProps> = ({
 
             {divider}
 
-            {renderItem(
-              'push_pin',
-              menu.column.pinned
-                ? isTR
-                  ? 'Sabitlemeyi Kaldır (Unpin)'
-                  : 'Unpin Column'
-                : isTR
-                  ? 'Sola Sabitle (Pin Left)'
-                  : 'Pin Column Left',
-              undefined,
-              onTogglePinColumn
-            )}
+            {renderPinItems()}
             {renderItem(
               isGroupedByCol ? 'folder_open' : 'workspaces',
               isGroupedByCol

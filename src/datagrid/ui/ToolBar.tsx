@@ -1016,11 +1016,16 @@ export const ToolBar: React.FC<ToolBarProps> = ({
                               {/* Toggle Pin */}
                               <button
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
+                                  const nextPin = !col.pinned
+                                    ? 'left'
+                                    : col.pinned === 'left' || col.pinned === true
+                                    ? 'right'
+                                    : false;
                                   onUpdateColumn?.(col.id, {
-                                    pinned: isPinned ? false : 'left',
-                                  })
-                                }
+                                    pinned: nextPin,
+                                  });
+                                }}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -1035,6 +1040,13 @@ export const ToolBar: React.FC<ToolBarProps> = ({
                                   color: isPinned ? '#FFFFFF' : theme.dom.popoverText,
                                   cursor: 'pointer',
                                 }}
+                                title={
+                                  col.pinned === 'right'
+                                    ? (isTR ? 'Sağa Sabitlendi (Kaldırmak için tıkla)' : 'Pinned Right (Click to unpin)')
+                                    : isPinned
+                                    ? (isTR ? 'Sola Sabitlendi (Sağa almak için tıkla)' : 'Pinned Left (Click to pin right)')
+                                    : (isTR ? 'Sabitlenmedi (Sola sabitlemek için tıkla)' : 'Unpinned (Click to pin left)')
+                                }
                               >
                                 <MaterialIcon
                                   name="push_pin"
@@ -1042,7 +1054,13 @@ export const ToolBar: React.FC<ToolBarProps> = ({
                                   filled={isPinned}
                                   color={isPinned ? '#FFFFFF' : undefined}
                                 />
-                                <span>{isPinned ? 'Pinned' : 'Pin'}</span>
+                                <span>
+                                  {col.pinned === 'right'
+                                    ? (isTR ? 'Sağ' : 'Right')
+                                    : isPinned
+                                    ? (isTR ? 'Sol' : 'Left')
+                                    : (isTR ? 'Sabitle' : 'Pin')}
+                                </span>
                               </button>
 
                               {/* Summary Selector */}

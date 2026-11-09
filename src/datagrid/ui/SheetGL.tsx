@@ -4332,6 +4332,15 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
                   handleUpdateColumnDef(contextMenu.column.id, {
                     pinned: contextMenu.column.pinned ? false : 'left',
                   });
+                  requestRender();
+                }
+              }}
+              onPinColumn={(pin) => {
+                if (contextMenu.column) {
+                  handleUpdateColumnDef(contextMenu.column.id, {
+                    pinned: pin,
+                  });
+                  requestRender();
                 }
               }}
               onToggleColumnReadonly={() => {
