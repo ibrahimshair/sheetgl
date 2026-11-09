@@ -39,6 +39,7 @@ export class ServerSideRowStore implements IDataStore {
   private listeners = new Map<string, Set<Function>>();
   private subscribers = new Set<() => void>();
   private dirtyCells = new Map<string, boolean>();
+  private invalidCells = new Set<string>();
   private pendingChanges: BatchChanges = { inserted: [], updated: [], deleted: [] };
   private batchMode: boolean = false;
 
@@ -394,6 +395,23 @@ export class ServerSideRowStore implements IDataStore {
 
   public isCellDirty(rowKey: any, columnId: string): boolean {
     return this.dirtyCells.has(`${rowKey}_${columnId}`);
+  }
+
+  public isCellInvalid(rowKey: any, columnId: string): boolean {
+    return this.invalidCells.has(`${rowKey}_${columnId}`);
+  }
+
+  public setCellInvalid(rowKey: any, columnId: string, invalid: boolean): void {
+    const key = `${rowKey}_${columnId}`;
+    if (invalid) {
+      this.invalidCells.add(key);
+    } else {
+      this.invalidCells.delete(key);
+    }
+  }
+
+  public clearInvalidCells(): void {
+    this.invalidCells.clear();
   }
 
   public setBatchMode(enabled: boolean): void {

@@ -734,6 +734,7 @@ export class CanvasRenderer {
       this.isColumnReadonly(col, permissions) ||
       (col.canEdit ? !col.canEdit(rowData, col) : false);
     const isDirty = store.isCellDirty?.(rowKey, col.id) ?? false;
+    const isInvalid = (store as any).isCellInvalid?.(rowKey, col.id) ?? false;
     const isColDirty = store.isColumnDirty?.(col.id) ?? false;
 
     // Theme-aware column cell background (from column or parent group)
@@ -811,9 +812,13 @@ export class CanvasRenderer {
       return;
     }
 
-    // DevExtreme-style background for dirty cells (dx-cell-modified), dirty columns, inserted rows, loading, or readonly
+    // DevExtreme-style background for dirty cells (dx-cell-modified), invalid cells (dx-cell-invalid), dirty columns, inserted rows, loading, or readonly
     if (isRowLoading) {
       ctx.fillStyle = theme.isDark ? 'rgba(255, 159, 10, 0.14)' : 'rgba(255, 149, 0, 0.10)';
+      ctx.fillRect(cellX, rowY, colW, rowH);
+    } else if (isInvalid) {
+      // DevExtreme dx-cell-invalid distinct warning/error red highlight
+      ctx.fillStyle = theme.isDark ? 'rgba(239, 68, 68, 0.28)' : 'rgba(239, 68, 68, 0.18)';
       ctx.fillRect(cellX, rowY, colW, rowH);
     } else if (isDirty) {
       // DevExtreme dx-cell-modified distinct green highlight
@@ -886,8 +891,23 @@ export class CanvasRenderer {
       isDirty,
     });
 
-    // DevExtreme dx-cell-modified Crisp Green Cell Border + Top-Right Triangle Indicator
-    if (isDirty) {
+    // DevExtreme dx-cell-invalid / dx-cell-modified Crisp Border + Top-Right Triangle Indicator
+    if (isInvalid) {
+      ctx.save();
+      const invalidStroke = '#EF4444';
+      ctx.strokeStyle = invalidStroke;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cellX + 1, rowY + 1, colW - 2, rowH - 2);
+
+      ctx.fillStyle = invalidStroke;
+      ctx.beginPath();
+      ctx.moveTo(cellX + colW - 9, rowY);
+      ctx.lineTo(cellX + colW, rowY);
+      ctx.lineTo(cellX + colW, rowY + 9);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else if (isDirty) {
       ctx.save();
       const dirtyStroke = theme.isDark ? '#22C55E' : '#16A34A';
       ctx.strokeStyle = dirtyStroke;

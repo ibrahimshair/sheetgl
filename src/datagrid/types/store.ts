@@ -101,6 +101,7 @@ export interface IMutableStore {
   getPendingChangesCount?(): number;
   hasPendingChanges?(): boolean;
   isCellDirty?(rowKey: any, columnId: string): boolean;
+  isCellInvalid?(rowKey: any, columnId: string): boolean;
   isColumnDirty?(columnId: string): boolean;
   isRowInserted?(rowKey: any): boolean;
   saveBatchChanges?(): Promise<BatchChanges>;

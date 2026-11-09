@@ -34,6 +34,7 @@ export class LocalDataStore implements IDataStore {
   private batchMode: boolean = true;
   private originalRowSnapshots = new Map<any, Record<string, any>>();
   private dirtyCells = new Map<any, Set<string>>();
+  private invalidCells = new Map<any, Set<string>>();
   private insertedKeys = new Set<any>();
   private deletedRows = new Map<any, { data: Record<string, any>; index: number }>();
   private distinctCache = new Map<string, DistinctItem[]>();
@@ -503,6 +504,33 @@ export class LocalDataStore implements IDataStore {
 
   public isCellDirty(rowKey: any, columnId: string): boolean {
     return this.dirtyCells.get(rowKey)?.has(columnId) ?? false;
+  }
+
+  public isCellInvalid(rowKey: any, columnId: string): boolean {
+    return this.invalidCells.get(rowKey)?.has(columnId) ?? false;
+  }
+
+  public setCellInvalid(rowKey: any, columnId: string, invalid: boolean): void {
+    if (invalid) {
+      let set = this.invalidCells.get(rowKey);
+      if (!set) {
+        set = new Set<string>();
+        this.invalidCells.set(rowKey, set);
+      }
+      set.add(columnId);
+    } else {
+      const set = this.invalidCells.get(rowKey);
+      if (set) {
+        set.delete(columnId);
+        if (set.size === 0) {
+          this.invalidCells.delete(rowKey);
+        }
+      }
+    }
+  }
+
+  public clearInvalidCells(): void {
+    this.invalidCells.clear();
   }
 
   public isColumnDirty(columnId: string): boolean {
