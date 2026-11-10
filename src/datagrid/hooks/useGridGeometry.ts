@@ -171,7 +171,7 @@ export function useGridGeometry({
     const orderedCols = ColumnManager.applyColumnOrder(baseCols, activeOrder);
     const visibleCols = ColumnManager.filterVisibleColumns(orderedCols, hiddenColumns);
 
-    if (rowSelectionMode === 'single' || rowSelectionMode === 'multiple') {
+    if (rowSelectionMode === 'multiple') {
       const selCol: ColumnDef = {
         id: '__selection__',
         title: '',

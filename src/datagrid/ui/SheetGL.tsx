@@ -2790,6 +2790,15 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     }
     setSelectionVersion((v) => v + 1);
 
+    // Single Selection Mode: Clicking anywhere on a data row selects that row
+    if (rowSelectionMode === 'single' && vRow && vRow.type === 'data') {
+      const rKey = vRow.data.uuid ?? vRow.data.id ?? hit.row;
+      setSelectedRowKeysSet(new Set([rKey]));
+      if (onSelectionChanged) {
+        onSelectionChanged([rKey], [vRow.data]);
+      }
+    }
+
     // Row Selection Column Click ('__selection__')
     if (colDef.id === '__selection__' && vRow && vRow.type === 'data') {
       setIsDraggingSelection(false);
