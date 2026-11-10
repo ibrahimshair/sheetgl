@@ -2568,7 +2568,12 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       hoveredCellRef.current = hit ? { row: hit.row, col: hit.col } : null;
       requestRender();
     }
-    setCursorStyle('cell');
+    const hoveredCol = hit ? geom.columns[hit.col] : null;
+    if (hoveredCol && (hoveredCol.onCellClick || hoveredCol.type === 'action' || hoveredCol.type === 'pdf')) {
+      setCursorStyle('pointer');
+    } else {
+      setCursorStyle('cell');
+    }
   };
 
   const handleSurfaceMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -2797,6 +2802,17 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       if (onSelectionChanged) {
         onSelectionChanged([rKey], [vRow.data]);
       }
+    }
+
+    // Column Custom Cell Click Handler (e.g. inline picker, modal, workflow action)
+    if (colDef.onCellClick && vRow && vRow.type === 'data') {
+      setIsDraggingSelection(false);
+      setFillDragState(null);
+      selectionRef.current.setActiveCell(hit.row, hit.col);
+      setSelectionVersion((v) => v + 1);
+      colDef.onCellClick(vRow.data, hit.row, vRow.data[colDef.id]);
+      requestRender();
+      return;
     }
 
     // Row Selection Column Click ('__selection__')

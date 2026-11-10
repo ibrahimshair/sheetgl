@@ -290,6 +290,12 @@ export interface ColumnDef {
   sparklineColor?: string;
   buttonText?: string;
   onActionClick?: (row: any, rowIndex: number) => void;
+  /** Custom handler when a cell in this column is clicked */
+  onCellClick?: (row: any, rowIndex: number, value: any) => void;
+  /** Placeholder text shown when cell value is empty or null */
+  placeholder?: string;
+  /** Hide the readonly lock icon in header even if grid/column is readonly */
+  hideLockIcon?: boolean;
   /**
    * Action column dropdown menu items. Can be a static list or a dynamic factory based on the row.
    */

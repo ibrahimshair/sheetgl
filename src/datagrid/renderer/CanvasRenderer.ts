@@ -1549,7 +1549,7 @@ export class CanvasRenderer {
     ctx.textBaseline = 'middle';
 
     let titleX = x + 8;
-    if (isReadonly && col.type !== 'action' && col.type !== 'sparkline') {
+    if (isReadonly && col.type !== 'action' && col.type !== 'sparkline' && !col.onCellClick && !col.hideLockIcon) {
       const lockColor = colStyle?.headerAccent || (theme.isDark ? '#fbbf24' : '#d97706');
       CanvasRenderer.drawGoogleLockIcon(ctx, titleX, y + h / 2, lockColor);
       titleX += 14;
