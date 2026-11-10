@@ -84,11 +84,21 @@ export function paintSelect({
 }: CellPaintContext<string>): void {
   if (value == null || value === '') return;
 
+  const valStr = String(value).trim();
+  const valLower = valStr.toLowerCase();
+  const isBadgeColumn = column.options?.some((o) => Boolean(o.bg || o.darkBg));
+
   const opt = column.options?.find(
-    (o) => o.value === value || String(o.value) === String(value)
+    (o) =>
+      o.value === value ||
+      String(o.value) === valStr ||
+      String(o.value).trim().toLowerCase() === valLower ||
+      (Boolean(o.label) && String(o.label).trim().toLowerCase() === valLower)
   ) ?? {
     value,
-    label: String(value),
+    label: valStr,
+    bg: isBadgeColumn ? (theme.isDark ? 'rgba(148, 163, 184, 0.16)' : '#F1F5F9') : undefined,
+    fg: isBadgeColumn ? (theme.isDark ? '#94A3B8' : '#475569') : undefined,
   };
 
   const badgeInfo = resolveBadgeColors(opt, theme.isDark);
@@ -114,6 +124,7 @@ export function paintSelect({
         ctx.stroke();
       }
 
+      ctx.save();
       ctx.beginPath();
       ctx.rect(x + pad + 6, pillY, pillW - 12, pillH);
       ctx.clip();
@@ -123,6 +134,7 @@ export function paintSelect({
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText(opt.label, x + pad + 8, y + height / 2);
+      ctx.restore();
     }
   } else {
     // Normal düzenlenebilir dropdown: Gri zemin YOK. Temiz hücre metni

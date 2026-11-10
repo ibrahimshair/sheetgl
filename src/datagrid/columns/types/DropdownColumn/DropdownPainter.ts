@@ -14,8 +14,12 @@ export function paintDropdown({
 }: CellPaintContext<string>): void {
   ctx.save();
 
+  const valLower = String(value ?? '').trim().toLowerCase();
   const opt = column.options?.find(
-    (o) => o.value === value || o.label.toLowerCase() === String(value ?? '').toLowerCase()
+    (o) =>
+      o.value === value ||
+      String(o.value).trim().toLowerCase() === valLower ||
+      (Boolean(o.label) && String(o.label).trim().toLowerCase() === valLower)
   );
   const displayLabel = opt ? opt.label : value != null ? String(value) : '';
 

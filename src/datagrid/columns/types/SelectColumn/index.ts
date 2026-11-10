@@ -42,7 +42,13 @@ export const SelectColumnPlugin: IColumnTypePlugin<string> = {
   },
 
   formatClipboard(value, column) {
-    const match = column.options?.find((o) => o.value === value);
+    const valLower = String(value ?? '').trim().toLowerCase();
+    const match = column.options?.find(
+      (o) =>
+        o.value === value ||
+        String(o.value).trim().toLowerCase() === valLower ||
+        (Boolean(o.label) && String(o.label).trim().toLowerCase() === valLower)
+    );
     return match ? match.label : String(value ?? '');
   },
 

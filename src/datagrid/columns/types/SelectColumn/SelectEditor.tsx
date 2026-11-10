@@ -12,15 +12,47 @@ export const SelectEditor: React.FC<CellEditorProps<string>> = ({
   onCancel,
 }) => {
   const options = column.options || [];
+  const valStr = String(value ?? '').trim();
+  const valLower = valStr.toLowerCase();
+
+  // If current cell value is not part of options, include it as an active/discovered option
+  const effectiveOptions = React.useMemo(() => {
+    if (!valStr) return options;
+    const exists = options.some(
+      (o) =>
+        o.value === value ||
+        String(o.value).trim().toLowerCase() === valLower ||
+        (Boolean(o.label) && String(o.label).trim().toLowerCase() === valLower)
+    );
+    if (!exists) {
+      const isBadgeCol = options.some((o) => Boolean(o.bg || o.darkBg));
+      return [
+        {
+          value: String(value),
+          label: String(value),
+          bg: isBadgeCol ? (theme.isDark ? 'rgba(148, 163, 184, 0.16)' : '#F1F5F9') : undefined,
+          fg: isBadgeCol ? (theme.isDark ? '#94A3B8' : '#475569') : undefined,
+        },
+        ...options,
+      ];
+    }
+    return options;
+  }, [options, value, valStr, valLower, theme.isDark]);
+
   const [search, setSearch] = useState<string>(initialChar || '');
   const [highlightedIndex, setHighlightedIndex] = useState<number>(() => {
-    const idx = options.findIndex((o) => o.value === value);
+    const idx = effectiveOptions.findIndex(
+      (o) =>
+        o.value === value ||
+        String(o.value).trim().toLowerCase() === valLower ||
+        (Boolean(o.label) && String(o.label).trim().toLowerCase() === valLower)
+    );
     return idx >= 0 ? idx : 0;
   });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const filtered = options.filter(
+  const filtered = effectiveOptions.filter(
     (o) =>
       o.label.toLowerCase().includes(search.toLowerCase()) ||
       o.value.toLowerCase().includes(search.toLowerCase())
@@ -122,7 +154,10 @@ export const SelectEditor: React.FC<CellEditorProps<string>> = ({
           </div>
         ) : (
           filtered.map((opt, i) => {
-            const isSelected = opt.value === value;
+            const isSelected =
+              opt.value === value ||
+              String(opt.value).trim().toLowerCase() === valLower ||
+              (Boolean(opt.label) && String(opt.label).trim().toLowerCase() === valLower);
             const isHigh = i === highlightedIndex;
             return (
               <div
