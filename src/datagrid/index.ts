@@ -1,6 +1,8 @@
 export { SheetGL } from './ui/SheetGL';
 export { SHEETGL_VERSION } from './version';
 export type { SheetGLProps } from './ui/SheetGL';
+export { RowDetailDrawer } from './overlays/RowDetailDrawer';
+export type { MasterDetailConfig, RowDetailPanelProps, RowDetailDrawerProps } from './overlays/RowDetailDrawer';
 export type { GridApi, NormalizedCellRange } from './core/GridApi';
 export { useGridSelection } from './hooks/useGridSelection';
 export type { UseGridSelectionOptions, UseGridSelectionReturn } from './hooks/useGridSelection';

@@ -42,6 +42,7 @@ import { SparklineModalOverlay, SparklineModalState } from '../overlays/Sparklin
 import { PdfPreviewModalOverlay, PdfPreviewModalState } from '../overlays/PdfPreviewModalOverlay';
 import { BatchChangesModal } from '../overlays/BatchChangesModal';
 import { DeleteConfirmProgressModal } from '../overlays/DeleteConfirmProgressModal';
+import { RowDetailDrawer, MasterDetailConfig } from '../overlays/RowDetailDrawer';
 import { ToolBar } from './ToolBar';
 import { FormulaBar } from './FormulaBar';
 import { SummaryFooter, SelectionSummaryStats } from './SummaryFooter';
@@ -138,6 +139,8 @@ export interface SheetGLProps {
   onAddNewRow?: () => void;
   onCloneRow?: (rowIndex: number, rowData: Record<string, any>) => void | Promise<void>;
   onViewRowDetail?: (rowIndex: number, rowData: Record<string, any>) => void;
+  /** DevExtreme-compatible Master-Detail drawer configuration */
+  masterDetail?: MasterDetailConfig;
   onRefresh?: () => void;
   /** Array or Set of column IDs to hide from rendering */
   hiddenColumns?: string[] | Set<string>;
@@ -241,6 +244,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     onAddNewRow,
     onCloneRow,
     onViewRowDetail,
+    masterDetail,
     onRefresh,
     remoteOperations: _remoteOperations,
     onFilterChange,
@@ -594,6 +598,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [sparklineModal, setSparklineModal] = useState<SparklineModalState | null>(null);
   const [pdfModal, setPdfModal] = useState<PdfPreviewModalState | null>(null);
+  const [detailDrawerRow, setDetailDrawerRow] = useState<{ rowIndex: number; rowKey: any; rowData: Record<string, any> } | null>(null);
   const [showBatchModal, setShowBatchModal] = useState<boolean>(false);
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     rowKeys: any[];
@@ -4384,12 +4389,18 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
               onExportExcel={exportExcel}
               onExportCsv={exportCsv}
               onViewRowDetail={
-                onViewRowDetail
+                (onViewRowDetail || (masterDetail && masterDetail.enabled !== false))
                   ? () => {
                     const vRow = store.getViewRow(contextMenu.row);
                     const rData =
                       contextMenu.rowData || (vRow && vRow.type === 'data' ? vRow.data : {});
-                    onViewRowDetail(contextMenu.row, rData);
+                    if (onViewRowDetail) {
+                      onViewRowDetail(contextMenu.row, rData);
+                    }
+                    if (masterDetail && masterDetail.enabled !== false) {
+                      const rKey = rData.uuid ?? rData.id ?? contextMenu.row;
+                      setDetailDrawerRow({ rowIndex: contextMenu.row, rowKey: rKey, rowData: rData });
+                    }
                   }
                   : undefined
               }
@@ -4481,6 +4492,22 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
             theme={resolvedTheme}
             onClose={() => {
               setActionDropdown(null);
+              containerRef.current?.focus();
+            }}
+          />
+        )}
+
+        {/* 6f. SLIDE-OVER MASTER-DETAIL DRAWER */}
+        {detailDrawerRow && masterDetail && (
+          <RowDetailDrawer
+            config={masterDetail}
+            rowIndex={detailDrawerRow.rowIndex}
+            rowKey={detailDrawerRow.rowKey}
+            rowData={detailDrawerRow.rowData}
+            theme={resolvedTheme}
+            locale={currentLocale}
+            onClose={() => {
+              setDetailDrawerRow(null);
               containerRef.current?.focus();
             }}
           />

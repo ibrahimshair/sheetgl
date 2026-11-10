@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { SummaryType } from './group';
 import { BatchChanges, IDataStore } from './store';
+export type { MasterDetailConfig, RowDetailPanelProps } from '../overlays/RowDetailDrawer';
 
 export type ColumnId = string;
 
