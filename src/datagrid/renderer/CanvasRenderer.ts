@@ -36,6 +36,7 @@ export interface RenderParams {
   selectedRowKeys?: Set<any>;
   zebraStriping?: boolean | string | { light: string; dark: string };
   streamingEngine?: StreamingEngine | null;
+  getRowStyle?: (row: Record<string, any>, rowIndex: number) => { backgroundColor?: string; textColor?: string } | undefined;
 }
 
 export class CanvasRenderer {
@@ -68,6 +69,7 @@ export class CanvasRenderer {
       selectedRowKeys,
       zebraStriping = true,
       streamingEngine,
+      getRowStyle,
     } = params;
 
     const now = performance.now();
@@ -267,8 +269,12 @@ export class CanvasRenderer {
           const rowY = headerH + r * rowH - scrollTop;
           const isZebraRow = Boolean(resolvedZebraBg && r % 2 === 1);
           const isRowHovered = hoveredCell?.row === r;
+          const customRowStyle = getRowStyle ? getRowStyle(rowData, r) : undefined;
 
-          if (isZebraRow && resolvedZebraBg) {
+          if (customRowStyle?.backgroundColor) {
+            ctx.fillStyle = customRowStyle.backgroundColor;
+            ctx.fillRect(totalLeftPinnedWidth, rowY, centerClipWidth, rowH);
+          } else if (isZebraRow && resolvedZebraBg) {
             ctx.fillStyle = resolvedZebraBg;
             ctx.fillRect(totalLeftPinnedWidth, rowY, centerClipWidth, rowH);
           }
@@ -312,7 +318,8 @@ export class CanvasRenderer {
               selectedRowKeys,
               colStyle,
               streamingEngine,
-              now
+              now,
+              customRowStyle
             );
           }
         }
@@ -337,13 +344,19 @@ export class CanvasRenderer {
         const isZebraRow = Boolean(resolvedZebraBg && r % 2 === 1);
         const isRowHovered = hoveredCell?.row === r;
         const rowY = headerH + r * rowH - scrollTop;
+        const customRowStyle = getRowStyle ? getRowStyle(rowData, r) : undefined;
 
         // Render Left Pinned Cells
         let curLeftX = rowNumW;
         for (let lc = 0; lc < geometry.leftPinnedColumns.length; lc++) {
           const col = geometry.leftPinnedColumns[lc];
-          ctx.fillStyle = isZebraRow && resolvedZebraBg ? resolvedZebraBg : theme.canvas.bg;
-          ctx.fillRect(curLeftX, rowY, col.width, rowH);
+          if (customRowStyle?.backgroundColor) {
+            ctx.fillStyle = customRowStyle.backgroundColor;
+            ctx.fillRect(curLeftX, rowY, col.width, rowH);
+          } else {
+            ctx.fillStyle = isZebraRow && resolvedZebraBg ? resolvedZebraBg : theme.canvas.bg;
+            ctx.fillRect(curLeftX, rowY, col.width, rowH);
+          }
           if (isRowHovered) {
             ctx.fillStyle = resolvedRowHoverBg;
             ctx.fillRect(curLeftX, rowY, col.width, rowH);
@@ -378,7 +391,8 @@ export class CanvasRenderer {
             selectedRowKeys,
             colStyle,
             streamingEngine,
-            now
+            now,
+            customRowStyle
           );
           curLeftX += col.width;
         }
@@ -445,14 +459,20 @@ export class CanvasRenderer {
           const rowY = headerH + r * rowH - scrollTop;
           const isZebraRow = Boolean(resolvedZebraBg && r % 2 === 1);
           const isRowHovered = hoveredCell?.row === r;
+          const customRowStyle = getRowStyle ? getRowStyle(rowData, r) : undefined;
 
           for (let rc = 0; rc < geometry.rightPinnedColumns.length; rc++) {
             const col = geometry.rightPinnedColumns[rc];
             const colIdx = baseRightIdx + rc;
             const cellX = rightPinnedStartX + geometry.rightColOffsets[rc];
 
-            ctx.fillStyle = isZebraRow && resolvedZebraBg ? resolvedZebraBg : theme.canvas.bg;
-            ctx.fillRect(cellX, rowY, col.width, rowH);
+            if (customRowStyle?.backgroundColor) {
+              ctx.fillStyle = customRowStyle.backgroundColor;
+              ctx.fillRect(cellX, rowY, col.width, rowH);
+            } else {
+              ctx.fillStyle = isZebraRow && resolvedZebraBg ? resolvedZebraBg : theme.canvas.bg;
+              ctx.fillRect(cellX, rowY, col.width, rowH);
+            }
             if (isRowHovered) {
               ctx.fillStyle = resolvedRowHoverBg;
               ctx.fillRect(cellX, rowY, col.width, rowH);
@@ -487,7 +507,8 @@ export class CanvasRenderer {
               selectedRowKeys,
               colStyle,
               streamingEngine,
-              now
+              now,
+              customRowStyle
             );
           }
         }
@@ -725,7 +746,8 @@ export class CanvasRenderer {
     selectedRowKeys?: Set<any>,
     colStyle?: ResolvedColumnStyle,
     streamingEngine?: StreamingEngine | null,
-    now: number = 0
+    now: number = 0,
+    customRowStyle?: { backgroundColor?: string; textColor?: string }
   ): void {
     const cellVal = typeof rowData[col.id] === 'function' ? undefined : rowData[col.id];
     const isHovered = hoveredCell?.row === rowIndex && hoveredCell?.col === colIdx;
@@ -737,10 +759,15 @@ export class CanvasRenderer {
     const isInvalid = (store as any).isCellInvalid?.(rowKey, col.id) ?? false;
     const isColDirty = store.isColumnDirty?.(col.id) ?? false;
 
-    // Theme-aware column cell background (from column or parent group)
-    if (col.id !== '__selection__' && colStyle?.columnBg) {
-      ctx.fillStyle = colStyle.columnBg;
-      ctx.fillRect(cellX, rowY, colW, rowH);
+    // Custom row style background (e.g. expired warning row), fallback to theme-aware column cell background
+    if (col.id !== '__selection__') {
+      if (customRowStyle?.backgroundColor) {
+        ctx.fillStyle = customRowStyle.backgroundColor;
+        ctx.fillRect(cellX, rowY, colW, rowH);
+      } else if (colStyle?.columnBg) {
+        ctx.fillStyle = colStyle.columnBg;
+        ctx.fillRect(cellX, rowY, colW, rowH);
+      }
     }
 
     // Row selection tint when selected via Single / Multiple Choice
@@ -862,15 +889,16 @@ export class CanvasRenderer {
       }
     }
 
-    // Column type plugin paint (with optional theme-aware columnText override)
-    const effectiveTheme = colStyle?.columnText
+    // Column type plugin paint (with optional theme-aware columnText or customRowStyle override)
+    const effectiveTextColor = customRowStyle?.textColor || colStyle?.columnText;
+    const effectiveTheme = effectiveTextColor
       ? {
-        ...theme,
-        canvas: {
-          ...theme.canvas,
-          cellText: colStyle.columnText,
-        },
-      }
+          ...theme,
+          canvas: {
+            ...theme.canvas,
+            cellText: effectiveTextColor,
+          },
+        }
       : theme;
     const plugin = ColumnTypeRegistry.get(col.type);
     plugin.paint({

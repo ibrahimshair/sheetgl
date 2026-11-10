@@ -17,6 +17,7 @@ import {
   RowInsertedEvent,
   RowUpdatingEvent,
   RowUpdatedEvent,
+  RowPreparedEvent,
   RowRemovingEvent,
   RowRemovedEvent,
   SavingEvent,
@@ -121,6 +122,12 @@ export interface SheetGLProps {
   zebraStriping?: boolean | string | { light: string; dark: string };
   /** DevExtreme-compatible alias for `zebraStriping` (default: true) */
   rowAlternationEnabled?: boolean;
+  /** Primary key field on row objects (default: 'id') */
+  keyField?: string;
+  /** Custom row styling callback (e.g. coloring expired rows) */
+  getRowStyle?: (row: Record<string, any>, rowIndex: number) => { backgroundColor?: string; textColor?: string } | undefined;
+  /** DevExtreme-compatible alias for row prepared callback */
+  onRowPrepared?: (e: RowPreparedEvent) => void;
   // Enterprise Lifecycle Event Triggers
   onEditingStart?: (e: EditingStartEvent) => void;
   onCellValueChanging?: (e: CellValueChangingEvent) => void;
@@ -222,6 +229,9 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     enterNavigation = 'auto',
     zebraStriping,
     rowAlternationEnabled,
+    getRowStyle,
+    onRowPrepared,
+    keyField = 'id',
     selectionMode: userSelectionMode = 'none',
     onSelectionModeChange,
     selectedRowKeys: userSelectedRowKeys,
@@ -803,6 +813,26 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       if (surfaceW > 0) {
         geometryRef.current.setViewportWidth(surfaceW);
       }
+      const effectiveGetRowStyle = (row: Record<string, any>, rowIndex: number) => {
+        if (getRowStyle) {
+          const res = getRowStyle(row, rowIndex);
+          if (res) return res;
+        }
+        if (onRowPrepared) {
+          const element = { backgroundColor: undefined as string | undefined, textColor: undefined as string | undefined };
+          onRowPrepared({
+            row,
+            rowIndex,
+            rowKey: row[keyField] ?? row.id ?? rowIndex,
+            rowElement: element,
+          });
+          if (element.backgroundColor || element.textColor) {
+            return element;
+          }
+        }
+        return undefined;
+      };
+
       CanvasRenderer.render({
         canvas: canvasRef.current,
         geometry: geometryRef.current,
@@ -824,6 +854,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         selectedRowKeys: selectedRowKeysSet,
         zebraStriping: zebraStriping ?? rowAlternationEnabled ?? true,
         streamingEngine: streamingEngineRef.current,
+        getRowStyle: getRowStyle || onRowPrepared ? effectiveGetRowStyle : undefined,
       });
 
       // Keep RAF loop alive as long as there are active fading pulses
@@ -844,6 +875,9 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     selectedRowKeysSet,
     zebraStriping,
     rowAlternationEnabled,
+    getRowStyle,
+    onRowPrepared,
+    keyField,
   ]);
 
   requestRenderRef.current = requestRender;

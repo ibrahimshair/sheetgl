@@ -420,6 +420,16 @@ export interface CellValueChangedEvent {
   updateRow: (patch: Record<string, any>) => void;
 }
 
+export interface RowPreparedEvent {
+  row: Record<string, any>;
+  rowKey: any;
+  rowIndex: number;
+  rowElement?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
 export interface RowInsertingEvent {
   data: Record<string, any>;
   targetRowIndex?: number;
