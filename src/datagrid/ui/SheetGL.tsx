@@ -3756,6 +3756,8 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         flexDirection: 'column',
         width: '100%',
         height: '100%',
+        flex: 1,
+        minHeight: 0,
         outline: 'none',
         backgroundColor: resolvedTheme.canvas.bg,
         color: resolvedTheme.canvas.cellText,
