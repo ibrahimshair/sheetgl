@@ -143,6 +143,8 @@ export interface SheetGLProps {
   onRowsRemoved?: (keys: any[]) => void;
   onSaving?: (e: SavingEvent) => void | Promise<void>;
   onSaved?: (e: SavedEvent) => void;
+  /** Callback fired when a data row is double-clicked (useful for lookup modals / selection) */
+  onRowDoubleClick?: (row: any, rowIndex: number) => void;
   onAddNewRow?: () => void;
   onCloneRow?: (rowIndex: number, rowData: Record<string, any>) => void | Promise<void>;
   onViewRowDetail?: (rowIndex: number, rowData: Record<string, any>) => void;
@@ -251,6 +253,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     onRowsRemoved,
     onSaving,
     onSaved,
+    onRowDoubleClick,
     onAddNewRow,
     onCloneRow,
     onViewRowDetail,
@@ -2993,6 +2996,14 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
 
     const hit = geom.hitTest(x, y, sl, st, store.getRowCount());
     if (!hit) return;
+
+    if (onRowDoubleClick) {
+      const vRow = store.getViewRow(hit.row);
+      if (vRow && vRow.type === 'data') {
+        onRowDoubleClick(vRow.data, hit.row);
+        return;
+      }
+    }
 
     setIsDraggingSelection(false);
     startEditingCell(hit.col, hit.row);
