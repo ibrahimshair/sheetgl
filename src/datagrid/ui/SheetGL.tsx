@@ -882,6 +882,31 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
 
   requestRenderRef.current = requestRender;
 
+  // Auto-resize observer on surface/container to re-render when viewport changes or flexes
+  useEffect(() => {
+    const el = gridSurfaceRef.current || containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          geometryRef.current.setViewportWidth(width);
+          requestRenderRef.current();
+        }
+      }
+    });
+
+    ro.observe(el);
+    const handleWinResize = () => requestRenderRef.current();
+    window.addEventListener('resize', handleWinResize);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', handleWinResize);
+    };
+  }, []);
+
   const autoSizeColumn = useCallback(
     (columnId: string) => {
       const geom = geometryRef.current;
