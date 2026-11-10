@@ -24,6 +24,7 @@ export type ColumnType =
   | 'url'
   | 'pdf'
   | 'file'
+  | 'rfi'
   | 'phone'
   | 'color'
   | 'rating'
@@ -308,6 +309,10 @@ export interface ColumnDef {
   onPdfClick?: (url: string, row: any, rowIndex: number) => void;
   /** Custom handler when clicking Open in New Tab button in a 'pdf' or 'file' column */
   onPdfOpenNewTabClick?: (url: string, row: any, rowIndex: number) => void;
+  /** Custom handler when clicking RFI Search (magnifier 🔍) button */
+  onRfiSearchClick?: (value: any, row: any, rowIndex: number) => void;
+  /** Function returning whether a row/value has a signed PDF available */
+  hasPdf?: (value: any, row: any) => boolean;
   /** Optional URL prefix prepended to relative file/document paths */
   urlPrefix?: string;
   headerTooltip?: string;

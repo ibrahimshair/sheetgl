@@ -2892,8 +2892,8 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     }
 
     if (plugin.onPointerDown && vRow && vRow.type === 'data') {
-      // Action & PDF columns work even in read mode; mutable plugins check canEditCell
-      const isActionOrPdf = colType === 'action' || colType === 'pdf';
+      // Action, PDF & RFI columns work even in read mode; mutable plugins check canEditCell
+      const isActionOrPdf = colType === 'action' || colType === 'pdf' || colType === 'rfi';
       if (isActionOrPdf || canEditCell(vRow.data, colDef, hit.row, false)) {
         // If this is an action column with actionMenuItems, open the action dropdown overlay
         if (colType === 'action' && colDef.actionMenuItems) {

@@ -93,6 +93,7 @@ export { enUS } from './i18n/locales/enUS';
 export { trTR } from './i18n/locales/trTR';
 
 export { PdfColumnPlugin } from './columns/types/PdfColumn';
+export { RfiColumnPlugin } from './columns/types/RfiColumn';
 export { PdfPreviewModalOverlay } from './overlays/PdfPreviewModalOverlay';
 export type { PdfPreviewModalState, PdfPreviewModalOverlayProps } from './overlays/PdfPreviewModalOverlay';
 export { normalizeMultiValue } from './columns/types/MultiSelectColumn/MultiSelectPainter';
