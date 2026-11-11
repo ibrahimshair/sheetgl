@@ -2601,7 +2601,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       requestRender();
     }
     const hoveredCol = hit ? geom.columns[hit.col] : null;
-    if (hoveredCol && (hoveredCol.onCellClick || hoveredCol.type === 'action' || hoveredCol.type === 'pdf')) {
+    if (hoveredCol && (hoveredCol.onCellClick || hoveredCol.type === 'action' || hoveredCol.type === 'pdf' || hoveredCol.type === 'rfi')) {
       setCursorStyle('pointer');
     } else {
       setCursorStyle('cell');
@@ -2812,7 +2812,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
 
     const colDef = geom.columns[hit.col];
     const colType = (colDef?.type || '').toLowerCase();
-    const isInteractiveCol = colType === 'action' || colType === 'pdf';
+    const isInteractiveCol = colType === 'action' || colType === 'pdf' || colType === 'rfi';
 
     if (e.shiftKey && !isInteractiveCol) {
       selectionRef.current.setRangeEnd(hit.row, hit.col);
