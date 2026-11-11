@@ -191,6 +191,37 @@ export const DateEditor: React.FC<CellEditorProps<string>> = ({
     ? ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz']
     : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
+  const applyDateMask = (input: string): string => {
+    const clean = input.replace(/\D/g, '');
+    if (isTR) {
+      // GG.AA.YYYY format
+      if (clean.length <= 2) return clean;
+      if (clean.length <= 4) return `${clean.slice(0, 2)}.${clean.slice(2)}`;
+      return `${clean.slice(0, 2)}.${clean.slice(2, 4)}.${clean.slice(4, 8)}`;
+    } else {
+      // MM/DD/YYYY format
+      if (clean.length <= 2) return clean;
+      if (clean.length <= 4) return `${clean.slice(0, 2)}/${clean.slice(2)}`;
+      return `${clean.slice(0, 2)}/${clean.slice(2, 4)}/${clean.slice(4, 8)}`;
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    let formatted = raw;
+    if (/^\d{4}-\d{2}/.test(raw)) {
+      formatted = raw;
+    } else if (raw.length > dateVal.length) {
+      formatted = applyDateMask(raw);
+    }
+    setDateVal(formatted);
+    const p = FilterEngine.parseDateParts(formatted);
+    if (p) {
+      setViewYear(p.year);
+      setViewMonth(p.month);
+    }
+  };
+
   const selectedParts = dateVal ? parseIsoParts(dateVal) : null;
   const openAbove = rect.y > 280 && typeof window !== 'undefined' && rect.y + rect.height + 280 > window.innerHeight - 80;
 
@@ -227,15 +258,7 @@ export const DateEditor: React.FC<CellEditorProps<string>> = ({
           type="text"
           value={dateVal}
           placeholder={isTR ? 'GG.AA.YYYY' : 'MM/DD/YYYY'}
-          onChange={(e) => {
-            const val = e.target.value;
-            setDateVal(val);
-            const p = FilterEngine.parseDateParts(val);
-            if (p) {
-              setViewYear(p.year);
-              setViewMonth(p.month);
-            }
-          }}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           style={{
             width: '100%',
