@@ -382,6 +382,7 @@ export class ServerSideRowStore implements IDataStore {
 
   public async setCell(rowKey: any, columnId: string, value: any): Promise<void> {
     // Locate the row in active cached blocks and update in memory
+    this.setCellInvalid(rowKey, columnId, false);
     this.blockCache.forEach((rows) => {
       const found = rows.find((r) => (r[this.keyField] ?? r.id) === rowKey);
       if (found) {

@@ -1215,9 +1215,12 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
             (isTR ? 'Doğrulama kuralı hatası: Giriş engellendi!' : 'Validation rule failed: Entry blocked!');
           setEditorValidationError(msg);
           showToast(`⛔ ${msg}`, 'warning');
+          (store as any).setCellInvalid?.(rowKey, colDef.id, true);
+          requestRender();
           return false;
         }
         setEditorValidationError(null);
+        (store as any).setCellInvalid?.(rowKey, colDef.id, false);
       } finally {
         if (hasAsyncRule) {
           loadingRowKeysRef.current.delete(rowKey);
@@ -1263,6 +1266,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
 
       // 4. Commit Primary Value
       await store.setCell(rowKey, colDef.id, finalValue);
+      (store as any).setCellInvalid?.(rowKey, colDef.id, false);
       onCellChange?.(rowData, colDef.id, finalValue);
 
       // 5. Cascading Column setCellValue & Async Backend Lookup Trigger

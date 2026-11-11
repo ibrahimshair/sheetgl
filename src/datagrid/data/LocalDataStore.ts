@@ -249,6 +249,7 @@ export class LocalDataStore implements IDataStore {
         this.ensureSnapshot(rowKey, item);
         this.markCellDirty(rowKey, columnId, value);
       }
+      this.setCellInvalid(rowKey, columnId, false);
       item[columnId] = Array.isArray(value) ? [...value] : value;
       delete item.__searchIndex;
       this.distinctCache.clear();
@@ -274,6 +275,7 @@ export class LocalDataStore implements IDataStore {
           this.ensureSnapshot(u.rowKey, item);
           this.markCellDirty(u.rowKey, u.columnId, u.value);
         }
+        this.setCellInvalid(u.rowKey, u.columnId, false);
         item[u.columnId] = u.value;
         delete item.__searchIndex;
         changed = true;
@@ -296,6 +298,7 @@ export class LocalDataStore implements IDataStore {
           this.ensureSnapshot(rowKey, item);
           this.markCellDirty(rowKey, colId, val);
         }
+        this.setCellInvalid(rowKey, colId, false);
         item[colId] = val;
       }
       delete item.__searchIndex;
@@ -653,6 +656,7 @@ export class LocalDataStore implements IDataStore {
     const changes = this.getPendingChanges();
     this.originalRowSnapshots.clear();
     this.dirtyCells.clear();
+    this.invalidCells.clear();
     this.insertedKeys.clear();
     this.deletedRows.clear();
     this.emit('loaded');
@@ -660,6 +664,7 @@ export class LocalDataStore implements IDataStore {
   }
 
   public discardBatchChanges(): void {
+    this.invalidCells.clear();
     // 1. Remove uncommitted inserted rows
     if (this.insertedKeys.size > 0) {
       this.rawData = this.rawData.filter((r) => !this.insertedKeys.has(r[this.keyField]));
