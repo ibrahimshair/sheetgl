@@ -35,6 +35,21 @@ export const DateColumnPlugin: IColumnTypePlugin<string> = {
     if (dmy) {
       return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
     }
+    // Convert 8-digit raw numeric string like 16021988 (DDMMYYYY) or 19880216 (YYYYMMDD)
+    if (/^\d{8}$/.test(raw)) {
+      const pYear = parseInt(raw.slice(0, 4), 10);
+      const pMonth = parseInt(raw.slice(4, 6), 10);
+      const pDay = parseInt(raw.slice(6, 8), 10);
+      if (pYear >= 1900 && pYear <= 2099 && pMonth >= 1 && pMonth <= 12 && pDay >= 1 && pDay <= 31) {
+        return `${pYear}-${String(pMonth).padStart(2, '0')}-${String(pDay).padStart(2, '0')}`;
+      }
+      const dDay = parseInt(raw.slice(0, 2), 10);
+      const dMonth = parseInt(raw.slice(2, 4), 10);
+      const dYear = parseInt(raw.slice(4, 8), 10);
+      if (dYear >= 1900 && dYear <= 2099 && dMonth >= 1 && dMonth <= 12 && dDay >= 1 && dDay <= 31) {
+        return `${dYear}-${String(dMonth).padStart(2, '0')}-${String(dDay).padStart(2, '0')}`;
+      }
+    }
     return raw;
   },
 

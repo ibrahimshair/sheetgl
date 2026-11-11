@@ -262,6 +262,31 @@ export class FilterEngine {
     const str = val.trim();
     if (str.length < 8 || str.length > 35) return null;
 
+    // 0. Compact 8-digit numeric date string (e.g. 16021988 or 19880216)
+    if (/^\d{8}$/.test(str)) {
+      // Try YYYYMMDD first if starts with century (19xx or 20xx)
+      const pYear = parseInt(str.slice(0, 4), 10);
+      const pMonth = parseInt(str.slice(4, 6), 10);
+      const pDay = parseInt(str.slice(6, 8), 10);
+      if (pYear >= 1900 && pYear <= 2099 && pMonth >= 1 && pMonth <= 12 && pDay >= 1 && pDay <= 31) {
+        const isoDate = `${pYear}-${String(pMonth).padStart(2, '0')}-${String(pDay).padStart(2, '0')}`;
+        const startOfDayMs = Date.UTC(pYear, pMonth - 1, pDay, 0, 0, 0, 0);
+        const endOfDayMs = Date.UTC(pYear, pMonth - 1, pDay, 23, 59, 59, 999);
+        return { year: pYear, month: pMonth, day: pDay, hour: 0, minute: 0, second: 0, hasTime: false, isoDate, startOfDayMs, endOfDayMs, exactMs: startOfDayMs };
+      }
+
+      // Try DDMMYYYY (e.g. 16021988 -> 1988-02-16) or MMDDYYYY
+      const dDay = parseInt(str.slice(0, 2), 10);
+      const dMonth = parseInt(str.slice(2, 4), 10);
+      const dYear = parseInt(str.slice(4, 8), 10);
+      if (dYear >= 1900 && dYear <= 2099 && dMonth >= 1 && dMonth <= 12 && dDay >= 1 && dDay <= 31) {
+        const isoDate = `${dYear}-${String(dMonth).padStart(2, '0')}-${String(dDay).padStart(2, '0')}`;
+        const startOfDayMs = Date.UTC(dYear, dMonth - 1, dDay, 0, 0, 0, 0);
+        const endOfDayMs = Date.UTC(dYear, dMonth - 1, dDay, 23, 59, 59, 999);
+        return { year: dYear, month: dMonth, day: dDay, hour: 0, minute: 0, second: 0, hasTime: false, isoDate, startOfDayMs, endOfDayMs, exactMs: startOfDayMs };
+      }
+    }
+
     // 1. ISO / Year-first: YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD with optional time
     const ymdMatch = str.match(
       /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[T\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?(?:\.\d+)?Z?)?$/

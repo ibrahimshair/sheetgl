@@ -17,6 +17,15 @@ function parseIsoParts(raw: any): { year: number; month: number; day: number; fo
     };
   }
   const str = String(raw).trim();
+  const parsedFromEngine = FilterEngine.parseDateParts(str);
+  if (parsedFromEngine) {
+    return {
+      year: parsedFromEngine.year,
+      month: parsedFromEngine.month,
+      day: parsedFromEngine.day,
+      formatted: parsedFromEngine.isoDate,
+    };
+  }
   const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (isoMatch) {
     const y = parseInt(isoMatch[1], 10);
