@@ -9,7 +9,6 @@ import { DateTimeEditor } from '../../src/datagrid/columns/types/DateTimeColumn/
 import { appleLight } from '../../src/datagrid/theme/presets/appleLight';
 import { appleDark } from '../../src/datagrid/theme/presets/appleDark';
 import { trTR } from '../../src/datagrid/i18n/locales/trTR';
-import { enUS } from '../../src/datagrid/i18n/locales/enUS';
 import { ColumnDef } from '../../src/datagrid/types/grid';
 
 describe('DateTimeColumnPlugin & DateTimePainter', () => {
