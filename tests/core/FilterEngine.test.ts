@@ -307,4 +307,53 @@ describe('FilterEngine', () => {
       expect(FilterEngine.formatLocalizedDate('not-a-date')).toBe('not-a-date');
     });
   });
+
+  describe('Compact 8-digit Date Parsing (v2.2.0+)', () => {
+    it('should parse YYYYMMDD compact date strings', () => {
+      const parsed = FilterEngine.parseDateParts('19880216');
+      expect(parsed).not.toBeNull();
+      expect(parsed?.year).toBe(1988);
+      expect(parsed?.month).toBe(2);
+      expect(parsed?.day).toBe(16);
+      expect(parsed?.isoDate).toBe('1988-02-16');
+      expect(parsed?.hasTime).toBe(false);
+    });
+
+    it('should parse DDMMYYYY compact date strings', () => {
+      const parsed = FilterEngine.parseDateParts('16021988');
+      expect(parsed).not.toBeNull();
+      expect(parsed?.year).toBe(1988);
+      expect(parsed?.month).toBe(2);
+      expect(parsed?.day).toBe(16);
+      expect(parsed?.isoDate).toBe('1988-02-16');
+    });
+
+    it('should parse 21st century compact date strings (2026)', () => {
+      const parsedYmd = FilterEngine.parseDateParts('20260501');
+      expect(parsedYmd?.isoDate).toBe('2026-05-01');
+
+      const parsedDmy = FilterEngine.parseDateParts('01052026');
+      expect(parsedDmy?.isoDate).toBe('2026-05-01');
+    });
+
+    it('should return null for invalid 8-digit compact strings', () => {
+      // Month 13 or Day 32
+      expect(FilterEngine.parseDateParts('99999999')).toBeNull();
+      expect(FilterEngine.parseDateParts('00000000')).toBeNull();
+      expect(FilterEngine.parseDateParts('35132026')).toBeNull();
+    });
+
+    it('should match row data when filtering using compact date search in evaluateRow', () => {
+      const row = { id: 1, created_at: '2026-05-01' };
+
+      // equals match with DDMMYYYY compact string
+      expect(FilterEngine.evaluateRow(row, ['created_at', '=', '01052026'])).toBe(true);
+
+      // equals match with YYYYMMDD compact string
+      expect(FilterEngine.evaluateRow(row, ['created_at', '=', '20260501'])).toBe(true);
+
+      // mismatch with different date
+      expect(FilterEngine.evaluateRow(row, ['created_at', '=', '02052026'])).toBe(false);
+    });
+  });
 });

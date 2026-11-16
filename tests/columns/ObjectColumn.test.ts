@@ -77,9 +77,7 @@ describe('ObjectColumnPlugin & ObjectPainter', () => {
         value: { a: 1 },
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: true });
@@ -92,9 +90,7 @@ describe('ObjectColumnPlugin & ObjectPainter', () => {
         value: { a: 1 },
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });
@@ -154,10 +150,10 @@ describe('ObjectColumnPlugin & ObjectPainter', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should parse clipboard JSON and format clipboard JSON string', () => {
-      const parsed = ObjectColumnPlugin.parseClipboard?.('{"model": "X", "year": 2026}');
+      const parsed = ObjectColumnPlugin.parseClipboard?.('{"model": "X", "year": 2026}', defaultColumn);
       expect(parsed).toEqual({ model: 'X', year: 2026 });
 
-      const formatted = ObjectColumnPlugin.formatClipboard?.({ model: 'X', year: 2026 });
+      const formatted = ObjectColumnPlugin.formatClipboard?.({ model: 'X', year: 2026 }, defaultColumn);
       expect(formatted).toBe('{"model":"X","year":2026}');
     });
   });

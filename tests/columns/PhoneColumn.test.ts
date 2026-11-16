@@ -75,12 +75,12 @@ describe('PhoneColumnPlugin & paintPhone', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should trim whitespace on parseClipboard', () => {
-      expect(PhoneColumnPlugin.parseClipboard?.('  +90 (555) 000-0000  ')).toBe('+90 (555) 000-0000');
+      expect(PhoneColumnPlugin.parseClipboard?.('  +90 (555) 000-0000  ', defaultColumn)).toBe('+90 (555) 000-0000');
     });
 
     it('should format clipboard value as string', () => {
-      expect(PhoneColumnPlugin.formatClipboard?.('+90 532 111 22 33')).toBe('+90 532 111 22 33');
-      expect(PhoneColumnPlugin.formatClipboard?.(null as any)).toBe('');
+      expect(PhoneColumnPlugin.formatClipboard?.('+90 532 111 22 33', defaultColumn)).toBe('+90 532 111 22 33');
+      expect(PhoneColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
     });
   });
 

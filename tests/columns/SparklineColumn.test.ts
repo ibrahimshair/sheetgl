@@ -25,28 +25,28 @@ describe('SparklineColumnPlugin & SparklinePainter', () => {
 
   describe('parseClipboard', () => {
     it('should parse comma-separated numbers into an array', () => {
-      expect(SparklineColumnPlugin.parseClipboard?.('10, 20, 30')).toEqual([10, 20, 30]);
-      expect(SparklineColumnPlugin.parseClipboard?.(' 5.5 , 12.8 , 99 ')).toEqual([5.5, 12.8, 99]);
+      expect(SparklineColumnPlugin.parseClipboard?.('10, 20, 30', defaultColumn)).toEqual([10, 20, 30]);
+      expect(SparklineColumnPlugin.parseClipboard?.(' 5.5 , 12.8 , 99 ', defaultColumn)).toEqual([5.5, 12.8, 99]);
     });
 
     it('should filter out non-numeric tokens', () => {
-      expect(SparklineColumnPlugin.parseClipboard?.('10, foo, 25, bar, 40')).toEqual([10, 25, 40]);
-      expect(SparklineColumnPlugin.parseClipboard?.('invalid, data')).toEqual([]);
+      expect(SparklineColumnPlugin.parseClipboard?.('10, foo, 25, bar, 40', defaultColumn)).toEqual([10, 25, 40]);
+      expect(SparklineColumnPlugin.parseClipboard?.('invalid, data', defaultColumn)).toEqual([]);
     });
 
     it('should handle empty input', () => {
-      expect(SparklineColumnPlugin.parseClipboard?.('')).toEqual([]);
+      expect(SparklineColumnPlugin.parseClipboard?.('', defaultColumn)).toEqual([]);
     });
   });
 
   describe('formatClipboard', () => {
     it('should format number array as comma-separated string', () => {
-      expect(SparklineColumnPlugin.formatClipboard?.([10, 20, 30])).toBe('10,20,30');
+      expect(SparklineColumnPlugin.formatClipboard?.([10, 20, 30], defaultColumn)).toBe('10,20,30');
     });
 
     it('should return empty string for non-array values', () => {
-      expect(SparklineColumnPlugin.formatClipboard?.(null as any)).toBe('');
-      expect(SparklineColumnPlugin.formatClipboard?.('not-an-array' as any)).toBe('');
+      expect(SparklineColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
+      expect(SparklineColumnPlugin.formatClipboard?.('not-an-array' as any, defaultColumn)).toBe('');
     });
   });
 

@@ -127,8 +127,8 @@ describe('NumberColumnPlugin & NumberPainter', () => {
     it('should format number as string', () => {
       expect(NumberColumnPlugin.formatClipboard?.(42, defaultColumn)).toBe('42');
       expect(NumberColumnPlugin.formatClipboard?.(12.34, defaultColumn)).toBe('12.34');
-      expect(NumberColumnPlugin.formatClipboard?.(null, defaultColumn)).toBe('');
-      expect(NumberColumnPlugin.formatClipboard?.(undefined, defaultColumn)).toBe('');
+      expect(NumberColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
+      expect(NumberColumnPlugin.formatClipboard?.(undefined as any, defaultColumn)).toBe('');
     });
   });
 
@@ -142,9 +142,9 @@ describe('NumberColumnPlugin & NumberPainter', () => {
 
     it('should handle null or non-numeric values gracefully', () => {
       const cmp = NumberColumnPlugin.comparator!;
-      expect(cmp(null, 10)).toBeLessThan(0);
-      expect(cmp(10, null)).toBeGreaterThan(0);
-      expect(cmp(null, undefined)).toBe(0);
+      expect(cmp(null as any, 10)).toBeLessThan(0);
+      expect(cmp(10, null as any)).toBeGreaterThan(0);
+      expect(cmp(null as any, undefined as any)).toBe(0);
     });
   });
 

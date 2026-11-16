@@ -97,7 +97,7 @@ describe('PercentColumnPlugin & PercentPainter', () => {
     it('should format number with percent sign', () => {
       expect(PercentColumnPlugin.formatClipboard?.(15.5, defaultColumn)).toBe('15.5%');
       expect(PercentColumnPlugin.formatClipboard?.(-4, defaultColumn)).toBe('-4%');
-      expect(PercentColumnPlugin.formatClipboard?.('invalid', defaultColumn)).toBe('0%');
+      expect(PercentColumnPlugin.formatClipboard?.('invalid' as any, defaultColumn)).toBe('0%');
     });
   });
 

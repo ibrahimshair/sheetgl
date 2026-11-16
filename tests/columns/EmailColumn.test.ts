@@ -74,12 +74,12 @@ describe('EmailColumnPlugin & paintEmail', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should trim text on parseClipboard', () => {
-      expect(EmailColumnPlugin.parseClipboard?.('  user@sheetgl.io  ')).toBe('user@sheetgl.io');
+      expect(EmailColumnPlugin.parseClipboard?.('  user@sheetgl.io  ', defaultColumn)).toBe('user@sheetgl.io');
     });
 
     it('should format clipboard as string', () => {
-      expect(EmailColumnPlugin.formatClipboard?.('test@domain.com')).toBe('test@domain.com');
-      expect(EmailColumnPlugin.formatClipboard?.(null as any)).toBe('');
+      expect(EmailColumnPlugin.formatClipboard?.('test@domain.com', defaultColumn)).toBe('test@domain.com');
+      expect(EmailColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
     });
   });
 

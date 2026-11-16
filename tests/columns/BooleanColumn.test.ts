@@ -118,31 +118,31 @@ describe('BooleanColumnPlugin & BooleanPainter', () => {
 
   describe('parseClipboard', () => {
     it('should recognize affirmative string representations as true', () => {
-      expect(BooleanColumnPlugin.parseClipboard?.('true')).toBe(true);
-      expect(BooleanColumnPlugin.parseClipboard?.('1')).toBe(true);
-      expect(BooleanColumnPlugin.parseClipboard?.('evet')).toBe(true);
-      expect(BooleanColumnPlugin.parseClipboard?.('aktif')).toBe(true);
-      expect(BooleanColumnPlugin.parseClipboard?.('yes')).toBe(true);
-      expect(BooleanColumnPlugin.parseClipboard?.(' TRUE ')).toBe(true);
-      expect(BooleanColumnPlugin.parseClipboard?.(' Evet ')).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.('true', defaultColumn)).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.('1', defaultColumn)).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.('evet', defaultColumn)).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.('aktif', defaultColumn)).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.('yes', defaultColumn)).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.(' TRUE ', defaultColumn)).toBe(true);
+      expect(BooleanColumnPlugin.parseClipboard?.(' Evet ', defaultColumn)).toBe(true);
     });
 
     it('should parse everything else as false', () => {
-      expect(BooleanColumnPlugin.parseClipboard?.('false')).toBe(false);
-      expect(BooleanColumnPlugin.parseClipboard?.('0')).toBe(false);
-      expect(BooleanColumnPlugin.parseClipboard?.('hayır')).toBe(false);
-      expect(BooleanColumnPlugin.parseClipboard?.('pasif')).toBe(false);
-      expect(BooleanColumnPlugin.parseClipboard?.('no')).toBe(false);
-      expect(BooleanColumnPlugin.parseClipboard?.('')).toBe(false);
-      expect(BooleanColumnPlugin.parseClipboard?.('random text')).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('false', defaultColumn)).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('0', defaultColumn)).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('hayır', defaultColumn)).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('pasif', defaultColumn)).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('no', defaultColumn)).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('', defaultColumn)).toBe(false);
+      expect(BooleanColumnPlugin.parseClipboard?.('random text', defaultColumn)).toBe(false);
     });
   });
 
   describe('formatClipboard', () => {
     it('should format true as DOĞRU and false as YANLIŞ', () => {
-      expect(BooleanColumnPlugin.formatClipboard?.(true)).toBe('DOĞRU');
-      expect(BooleanColumnPlugin.formatClipboard?.(false)).toBe('YANLIŞ');
-      expect(BooleanColumnPlugin.formatClipboard?.(undefined as any)).toBe('YANLIŞ');
+      expect(BooleanColumnPlugin.formatClipboard?.(true, defaultColumn)).toBe('DOĞRU');
+      expect(BooleanColumnPlugin.formatClipboard?.(false, defaultColumn)).toBe('YANLIŞ');
+      expect(BooleanColumnPlugin.formatClipboard?.(undefined as any, defaultColumn)).toBe('YANLIŞ');
     });
   });
 

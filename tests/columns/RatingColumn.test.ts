@@ -31,7 +31,6 @@ describe('RatingColumnPlugin & RatingPainter', () => {
         localY: 17,
         value: 0,
         setValue,
-        openEditor: vi.fn(),
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -49,7 +48,6 @@ describe('RatingColumnPlugin & RatingPainter', () => {
         localY: 17,
         value: 1,
         setValue,
-        openEditor: vi.fn(),
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -67,7 +65,6 @@ describe('RatingColumnPlugin & RatingPainter', () => {
         localY: 17,
         value: 2,
         setValue,
-        openEditor: vi.fn(),
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -84,7 +81,6 @@ describe('RatingColumnPlugin & RatingPainter', () => {
         localY: 17,
         value: 3,
         setValue,
-        openEditor: vi.fn(),
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -101,7 +97,6 @@ describe('RatingColumnPlugin & RatingPainter', () => {
         localY: 17,
         value: 3,
         setValue,
-        openEditor: vi.fn(),
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -156,30 +151,30 @@ describe('RatingColumnPlugin & RatingPainter', () => {
 
   describe('parseClipboard', () => {
     it('should parse valid numbers between 0 and 5', () => {
-      expect(RatingColumnPlugin.parseClipboard?.('0')).toBe(0);
-      expect(RatingColumnPlugin.parseClipboard?.('3')).toBe(3);
-      expect(RatingColumnPlugin.parseClipboard?.(' 5 ')).toBe(5);
+      expect(RatingColumnPlugin.parseClipboard?.('0', defaultColumn)).toBe(0);
+      expect(RatingColumnPlugin.parseClipboard?.('3', defaultColumn)).toBe(3);
+      expect(RatingColumnPlugin.parseClipboard?.(' 5 ', defaultColumn)).toBe(5);
     });
 
     it('should clamp numbers higher than 5 to 5', () => {
-      expect(RatingColumnPlugin.parseClipboard?.('10')).toBe(5);
+      expect(RatingColumnPlugin.parseClipboard?.('10', defaultColumn)).toBe(5);
     });
 
     it('should clamp negative numbers to 0', () => {
-      expect(RatingColumnPlugin.parseClipboard?.('-4')).toBe(0);
+      expect(RatingColumnPlugin.parseClipboard?.('-4', defaultColumn)).toBe(0);
     });
 
     it('should return 0 for non-numeric clipboard text', () => {
-      expect(RatingColumnPlugin.parseClipboard?.('invalid')).toBe(0);
-      expect(RatingColumnPlugin.parseClipboard?.('')).toBe(0);
+      expect(RatingColumnPlugin.parseClipboard?.('invalid', defaultColumn)).toBe(0);
+      expect(RatingColumnPlugin.parseClipboard?.('', defaultColumn)).toBe(0);
     });
   });
 
   describe('formatClipboard', () => {
     it('should format rating as "N / 5 Yıldız"', () => {
-      expect(RatingColumnPlugin.formatClipboard?.(4)).toBe('4 / 5 Yıldız');
-      expect(RatingColumnPlugin.formatClipboard?.(0)).toBe('0 / 5 Yıldız');
-      expect(RatingColumnPlugin.formatClipboard?.(null as any)).toBe('0 / 5 Yıldız');
+      expect(RatingColumnPlugin.formatClipboard?.(4, defaultColumn)).toBe('4 / 5 Yıldız');
+      expect(RatingColumnPlugin.formatClipboard?.(0, defaultColumn)).toBe('0 / 5 Yıldız');
+      expect(RatingColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('0 / 5 Yıldız');
     });
   });
 

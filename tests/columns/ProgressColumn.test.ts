@@ -76,30 +76,30 @@ describe('ProgressColumnPlugin & ProgressPainter', () => {
 
   describe('parseClipboard', () => {
     it('should parse percentage strings and clean numbers', () => {
-      expect(ProgressColumnPlugin.parseClipboard?.('75%')).toBe(75);
-      expect(ProgressColumnPlugin.parseClipboard?.(' 42 ')).toBe(42);
-      expect(ProgressColumnPlugin.parseClipboard?.('%80')).toBe(80);
+      expect(ProgressColumnPlugin.parseClipboard?.('75%', defaultColumn)).toBe(75);
+      expect(ProgressColumnPlugin.parseClipboard?.(' 42 ', defaultColumn)).toBe(42);
+      expect(ProgressColumnPlugin.parseClipboard?.('%80', defaultColumn)).toBe(80);
     });
 
     it('should clamp values above 100 to 100', () => {
-      expect(ProgressColumnPlugin.parseClipboard?.('150%')).toBe(100);
+      expect(ProgressColumnPlugin.parseClipboard?.('150%', defaultColumn)).toBe(100);
     });
 
     it('should clamp negative values to 0', () => {
-      expect(ProgressColumnPlugin.parseClipboard?.('-25%')).toBe(0);
+      expect(ProgressColumnPlugin.parseClipboard?.('-25%', defaultColumn)).toBe(0);
     });
 
     it('should return 0 for unparseable strings', () => {
-      expect(ProgressColumnPlugin.parseClipboard?.('tamamlandı')).toBe(0);
-      expect(ProgressColumnPlugin.parseClipboard?.('')).toBe(0);
+      expect(ProgressColumnPlugin.parseClipboard?.('tamamlandı', defaultColumn)).toBe(0);
+      expect(ProgressColumnPlugin.parseClipboard?.('', defaultColumn)).toBe(0);
     });
   });
 
   describe('formatClipboard', () => {
     it('should format percentage with % suffix', () => {
-      expect(ProgressColumnPlugin.formatClipboard?.(85)).toBe('85%');
-      expect(ProgressColumnPlugin.formatClipboard?.(0)).toBe('0%');
-      expect(ProgressColumnPlugin.formatClipboard?.(undefined as any)).toBe('0%');
+      expect(ProgressColumnPlugin.formatClipboard?.(85, defaultColumn)).toBe('85%');
+      expect(ProgressColumnPlugin.formatClipboard?.(0, defaultColumn)).toBe('0%');
+      expect(ProgressColumnPlugin.formatClipboard?.(undefined as any, defaultColumn)).toBe('0%');
     });
   });
 

@@ -37,9 +37,7 @@ describe('DropdownColumnPlugin & paintDropdown', () => {
         value: 'elec',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: true });
@@ -52,9 +50,7 @@ describe('DropdownColumnPlugin & paintDropdown', () => {
         value: 'elec',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });

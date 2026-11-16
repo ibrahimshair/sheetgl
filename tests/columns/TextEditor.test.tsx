@@ -34,7 +34,7 @@ describe('TextEditor Component', () => {
     render(<TextEditor {...defaultProps} value="Önceden Girilmiş" />);
 
     const input = screen.getByDisplayValue('Önceden Girilmiş') as HTMLInputElement;
-    expect(input).toBeInTheDocument();
+    expect(input).toBeDefined();
     expect(document.activeElement).toBe(input);
   });
 
@@ -42,7 +42,7 @@ describe('TextEditor Component', () => {
     render(<TextEditor {...defaultProps} value="Eski Değer" initialChar="Y" />);
 
     const input = screen.getByDisplayValue('Y') as HTMLInputElement;
-    expect(input).toBeInTheDocument();
+    expect(input).toBeDefined();
     expect(input.selectionStart).toBe(1);
     expect(input.selectionEnd).toBe(1);
   });

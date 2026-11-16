@@ -37,9 +37,7 @@ describe('UrlColumnPlugin & paintUrl', () => {
         value: 'https://example.com/products',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: false });
@@ -59,9 +57,7 @@ describe('UrlColumnPlugin & paintUrl', () => {
         value: 'github.com/ibrahimshair',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: false });
@@ -81,9 +77,7 @@ describe('UrlColumnPlugin & paintUrl', () => {
         value: 'https://example.com',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });
@@ -99,9 +93,7 @@ describe('UrlColumnPlugin & paintUrl', () => {
         value: '',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });
@@ -160,12 +152,12 @@ describe('UrlColumnPlugin & paintUrl', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should trim clipboard text in parseClipboard', () => {
-      expect(UrlColumnPlugin.parseClipboard?.('  https://test.com  ')).toBe('https://test.com');
+      expect(UrlColumnPlugin.parseClipboard?.('  https://test.com  ', defaultColumn)).toBe('https://test.com');
     });
 
     it('should format clipboard string', () => {
-      expect(UrlColumnPlugin.formatClipboard?.('https://example.com')).toBe('https://example.com');
-      expect(UrlColumnPlugin.formatClipboard?.(null as any)).toBe('');
+      expect(UrlColumnPlugin.formatClipboard?.('https://example.com', defaultColumn)).toBe('https://example.com');
+      expect(UrlColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
     });
   });
 

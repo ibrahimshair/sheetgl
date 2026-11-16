@@ -8,6 +8,7 @@ import {
 import { MultiSelectEditor } from '../../src/datagrid/columns/types/MultiSelectColumn/MultiSelectEditor';
 import { appleLight } from '../../src/datagrid/theme/presets/appleLight';
 import { appleDark } from '../../src/datagrid/theme/presets/appleDark';
+import { enUS } from '../../src/datagrid/i18n/locales/enUS';
 import { ColumnDef, SelectOption } from '../../src/datagrid/types/grid';
 
 describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
@@ -207,8 +208,8 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
 
   describe('parseClipboard', () => {
     it('should return empty array for null or undefined clipboard text', () => {
-      expect(MultiSelectColumnPlugin.parseClipboard?.(null, defaultColumn)).toEqual([]);
-      expect(MultiSelectColumnPlugin.parseClipboard?.(undefined, defaultColumn)).toEqual([]);
+      expect(MultiSelectColumnPlugin.parseClipboard?.(null as any, defaultColumn)).toEqual([]);
+      expect(MultiSelectColumnPlugin.parseClipboard?.(undefined as any, defaultColumn)).toEqual([]);
     });
 
     it('should map clipboard text to option values by exact value or label', () => {
@@ -241,7 +242,7 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
 
     it('should return empty string for empty value', () => {
       expect(MultiSelectColumnPlugin.formatClipboard?.([], defaultColumn)).toBe('');
-      expect(MultiSelectColumnPlugin.formatClipboard?.(null, defaultColumn)).toBe('');
+      expect(MultiSelectColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
     });
   });
 
@@ -297,6 +298,7 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
         isHovered: false,
         isSelected: false,
         theme: appleLight,
+        locale: enUS,
       });
 
       expect(ctx.save).toHaveBeenCalled();
@@ -321,6 +323,7 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
         isHovered: false,
         isSelected: false,
         theme: appleDark,
+        locale: enUS,
       });
 
       expect(ctx.save).toHaveBeenCalled();
@@ -344,6 +347,7 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
         isHovered: false,
         isSelected: false,
         theme: appleLight,
+        locale: enUS,
       });
 
       expect(ctx.fillText).toHaveBeenCalledWith(expect.stringMatching(/^\+\d+$/), expect.any(Number), expect.any(Number));
@@ -354,9 +358,9 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
       expect(() => {
         paintMultiSelect({
           ctx,
-          value: null,
-          column: defaultColumn,
-          row: {},
+          value: null as any,
+        column: defaultColumn,
+        row: {},
           rowIndex: 0,
           x: 0,
           y: 0,
@@ -365,6 +369,7 @@ describe('MultiSelectColumnPlugin & MultiSelectPainter', () => {
           isHovered: false,
           isSelected: false,
           theme: appleLight,
+        locale: enUS,
         });
       }).not.toThrow();
     });

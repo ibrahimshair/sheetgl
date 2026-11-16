@@ -38,7 +38,7 @@ describe('ColorEditor Component', () => {
     expect(buttons.length).toBe(12);
 
     const textInput = screen.getByDisplayValue('#10B981');
-    expect(textInput).toBeInTheDocument();
+    expect(textInput).toBeDefined();
   });
 
   it('should commit immediately when a preset color button is clicked', () => {
@@ -59,7 +59,7 @@ describe('ColorEditor Component', () => {
     const textInput = screen.getByDisplayValue('#38BDF8');
     fireEvent.change(textInput, { target: { value: '#FF00AA' } });
 
-    expect(screen.getByDisplayValue('#FF00AA')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('#FF00AA')).toBeDefined();
 
     fireEvent.keyDown(textInput, { key: 'Enter' });
     expect(onCommit).toHaveBeenCalledWith('#FF00AA', 'down');

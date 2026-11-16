@@ -38,9 +38,7 @@ describe('PdfColumnPlugin & paintPdf', () => {
         value: 'docs/contract-101.pdf',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: false });
@@ -66,7 +64,6 @@ describe('PdfColumnPlugin & paintPdf', () => {
         column: col,
         row,
         rowIndex: 2,
-        openEditor: vi.fn(),
         setValue: vi.fn(),
       });
 
@@ -90,7 +87,6 @@ describe('PdfColumnPlugin & paintPdf', () => {
         column: col,
         row,
         rowIndex: 4,
-        openEditor: vi.fn(),
         setValue: vi.fn(),
       });
 
@@ -110,7 +106,6 @@ describe('PdfColumnPlugin & paintPdf', () => {
         column: defaultColumn,
         row,
         rowIndex: 1,
-        openEditor: vi.fn(),
         setValue: vi.fn(),
       });
 
@@ -130,9 +125,7 @@ describe('PdfColumnPlugin & paintPdf', () => {
         value: '',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });
@@ -141,12 +134,12 @@ describe('PdfColumnPlugin & paintPdf', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should trim string in parseClipboard', () => {
-      expect(PdfColumnPlugin.parseClipboard?.('  document.pdf  ')).toBe('document.pdf');
+      expect(PdfColumnPlugin.parseClipboard?.('  document.pdf  ', defaultColumn)).toBe('document.pdf');
     });
 
     it('should format clipboard string', () => {
-      expect(PdfColumnPlugin.formatClipboard?.('file.pdf')).toBe('file.pdf');
-      expect(PdfColumnPlugin.formatClipboard?.(null as any)).toBe('');
+      expect(PdfColumnPlugin.formatClipboard?.('file.pdf', defaultColumn)).toBe('file.pdf');
+      expect(PdfColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
     });
   });
 

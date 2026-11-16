@@ -75,13 +75,13 @@ describe('TextColumnPlugin & TextPainter', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should trim string on parseClipboard', () => {
-      expect(TextColumnPlugin.parseClipboard?.('  Deneme Metin  ')).toBe('Deneme Metin');
+      expect(TextColumnPlugin.parseClipboard?.('  Deneme Metin  ', defaultColumn)).toBe('Deneme Metin');
     });
 
     it('should format clipboard value as string or empty string', () => {
-      expect(TextColumnPlugin.formatClipboard?.('Örnek')).toBe('Örnek');
-      expect(TextColumnPlugin.formatClipboard?.(null as any)).toBe('');
-      expect(TextColumnPlugin.formatClipboard?.(undefined as any)).toBe('');
+      expect(TextColumnPlugin.formatClipboard?.('Örnek', defaultColumn)).toBe('Örnek');
+      expect(TextColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
+      expect(TextColumnPlugin.formatClipboard?.(undefined as any, defaultColumn)).toBe('');
     });
   });
 

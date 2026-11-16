@@ -154,8 +154,8 @@ describe('DateTimeColumnPlugin & DateTimePainter', () => {
   describe('formatClipboard', () => {
     it('should return stringified value or empty string', () => {
       expect(DateTimeColumnPlugin.formatClipboard?.('2026-11-16 14:30', defaultColumn)).toBe('2026-11-16 14:30');
-      expect(DateTimeColumnPlugin.formatClipboard?.(null, defaultColumn)).toBe('');
-      expect(DateTimeColumnPlugin.formatClipboard?.(undefined, defaultColumn)).toBe('');
+      expect(DateTimeColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
+      expect(DateTimeColumnPlugin.formatClipboard?.(undefined as any, defaultColumn)).toBe('');
     });
   });
 

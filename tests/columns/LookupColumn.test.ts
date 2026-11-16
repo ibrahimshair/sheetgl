@@ -35,9 +35,7 @@ describe('LookupColumnPlugin & paintLookup', () => {
         value: 'usr_1',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: true });
@@ -50,9 +48,7 @@ describe('LookupColumnPlugin & paintLookup', () => {
         value: 'usr_1',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });

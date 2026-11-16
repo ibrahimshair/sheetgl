@@ -112,8 +112,8 @@ describe('CurrencyColumnPlugin & CurrencyPainter', () => {
     });
 
     it('should return empty string for null or undefined', () => {
-      expect(CurrencyColumnPlugin.formatClipboard?.(null, defaultColumn)).toBe('');
-      expect(CurrencyColumnPlugin.formatClipboard?.(undefined, defaultColumn)).toBe('');
+      expect(CurrencyColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('');
+      expect(CurrencyColumnPlugin.formatClipboard?.(undefined as any, defaultColumn)).toBe('');
     });
   });
 
@@ -123,7 +123,7 @@ describe('CurrencyColumnPlugin & CurrencyPainter', () => {
       expect(cmp(100, 200)).toBeLessThan(0);
       expect(cmp(500, 200)).toBeGreaterThan(0);
       expect(cmp(150, 150)).toBe(0);
-      expect(cmp(null, 50)).toBeLessThan(0);
+      expect(cmp(null as any, 50)).toBeLessThan(0);
     });
   });
 

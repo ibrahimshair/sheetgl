@@ -31,9 +31,7 @@ describe('ColorColumnPlugin & paintColor', () => {
         value: '#38BDF8',
         column: defaultColumn,
         row: {},
-        rowIndex: 0,
-        openEditor: vi.fn(),
-        setValue: vi.fn(),
+        rowIndex: 0,        setValue: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true, shouldOpenEditor: true });
@@ -95,12 +93,12 @@ describe('ColorColumnPlugin & paintColor', () => {
 
   describe('parseClipboard & formatClipboard', () => {
     it('should trim string on parseClipboard', () => {
-      expect(ColorColumnPlugin.parseClipboard?.('  #10B981  ')).toBe('#10B981');
+      expect(ColorColumnPlugin.parseClipboard?.('  #10B981  ', defaultColumn)).toBe('#10B981');
     });
 
     it('should format clipboard with fallback default', () => {
-      expect(ColorColumnPlugin.formatClipboard?.('#EF4444')).toBe('#EF4444');
-      expect(ColorColumnPlugin.formatClipboard?.(null as any)).toBe('#38BDF8');
+      expect(ColorColumnPlugin.formatClipboard?.('#EF4444', defaultColumn)).toBe('#EF4444');
+      expect(ColorColumnPlugin.formatClipboard?.(null as any, defaultColumn)).toBe('#38BDF8');
     });
   });
 
