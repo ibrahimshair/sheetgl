@@ -3,6 +3,7 @@ import { GridApi } from '../core/GridApi';
 import { useGridSelection } from '../hooks/useGridSelection';
 import { useGridGeometry } from '../hooks/useGridGeometry';
 import {
+  ActionMenuItem,
   ColumnDef,
   ColumnGroupDef,
   ActiveOverlayState,
@@ -53,6 +54,7 @@ import { initDefaultColumnPlugins } from '../columns/initPlugins';
 import { ColumnTypeRegistry } from '../columns/ColumnTypeRegistry';
 import { CellEditorRegistry } from '../editing/CellEditorRegistry';
 import { LocaleEngine, LocaleInput, IGridLocale } from '../i18n/LocaleEngine';
+import { RowGroupingEngine, isGroupRow, GroupedRow, GroupAggregation } from '../utils/grouping/RowGroupingEngine';
 
 export interface SheetGLProps {
   dataSource: any[] | IDataStore;
@@ -145,6 +147,13 @@ export interface SheetGLProps {
   onSaved?: (e: SavedEvent) => void;
   /** Callback fired when a data row is double-clicked (useful for lookup modals / selection) */
   onRowDoubleClick?: (row: any, rowIndex: number) => void;
+  /** Callback fired when a data cell is clicked (single click) */
+  onCellClick?: (e: {
+    rowIndex: number;
+    column: ColumnDef;
+    row: Record<string, any>;
+    rect: { x: number; y: number; width: number; height: number };
+  }) => void;
   onAddNewRow?: () => void;
   onCloneRow?: (rowIndex: number, rowData: Record<string, any>) => void | Promise<void>;
   onViewRowDetail?: (rowIndex: number, rowData: Record<string, any>) => void;
@@ -157,6 +166,13 @@ export interface SheetGLProps {
   columnOrder?: string[];
   /** Callback fired when a column's visibility changes */
   onColumnVisibilityChange?: (columnId: string, visible: boolean, hiddenColumns: string[]) => void;
+
+  /** Enterprise Row Grouping: list of column field keys to group rows by */
+  groupBy?: string[];
+  /** Enterprise Row Grouping: set or array of expanded group node keys */
+  expandedGroupKeys?: Set<string> | string[];
+  /** Callback fired when a group row is expanded or collapsed */
+  onGroupExpansionChanged?: (expandedKeys: Set<string>) => void;
 
   style?: React.CSSProperties;
   className?: string;
@@ -254,6 +270,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     onSaving,
     onSaved,
     onRowDoubleClick,
+    onCellClick,
     onAddNewRow,
     onCloneRow,
     onViewRowDetail,
@@ -270,6 +287,9 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     storageKey,
     onScrollChange,
     onExport,
+    groupBy: userGroupBy,
+    expandedGroupKeys: userExpandedGroupKeys,
+    onGroupExpansionChanged,
     style,
     className,
   },
@@ -291,7 +311,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
   }, [dateFormat]);
 
   // 2. DataStore Adaptation
-  const store = useMemo<IDataStore>(() => {
+  const rawStore = useMemo<IDataStore>(() => {
     if (Array.isArray(dataSource)) {
       const initialSummaries: Record<string, SummaryType> = {};
       userColumns.forEach((c) => {
@@ -320,8 +340,238 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
   }, [dataSource]);
 
   useEffect(() => {
-    store.setBatchMode?.(batchEditMode);
-  }, [store, batchEditMode]);
+    rawStore.setBatchMode?.(batchEditMode);
+  }, [rawStore, batchEditMode]);
+
+  const requestRenderRef = useRef<() => void>(() => {});
+  const [storeVersion, setStoreVersion] = useState<number>(0);
+
+  // 2b. Unified Enterprise Row Grouping Pipeline (RowGroupingEngine + ToolBar groups sync)
+  const [groups, setGroups] = useState<GroupDescriptor[]>(() =>
+    userGroupBy && userGroupBy.length > 0
+      ? userGroupBy.map((s) => ({ selector: s }))
+      : initialGroups
+  );
+  const [internalGroupBy, setInternalGroupBy] = useState<string[]>(() =>
+    userGroupBy && userGroupBy.length > 0
+      ? [...userGroupBy]
+      : initialGroups.map((g) => g.selector)
+  );
+  const [defaultGroupsExpanded, setDefaultGroupsExpanded] = useState<boolean>(() =>
+    userExpandedGroupKeys
+      ? false
+      : initialGroups.length > 0
+      ? initialGroups.some((g) => Boolean(g.isExpanded))
+      : true
+  );
+  const [internalExpandedGroupKeys, setInternalExpandedGroupKeys] = useState<Set<string>>(
+    () => new Set(userExpandedGroupKeys || [])
+  );
+  const [groupVersion, setGroupVersion] = useState<number>(0);
+
+  const prevUserGroupByRef = useRef<string[] | undefined>(userGroupBy);
+  useEffect(() => {
+    if (userGroupBy !== undefined) {
+      const prev = prevUserGroupByRef.current;
+      const isSame =
+        prev !== undefined &&
+        prev.length === userGroupBy.length &&
+        prev.every((val, idx) => val === userGroupBy[idx]);
+      if (!isSame) {
+        prevUserGroupByRef.current = userGroupBy;
+        const nextDescriptors = userGroupBy.map((s) => ({ selector: s }));
+        setInternalGroupBy([...userGroupBy]);
+        setGroups(nextDescriptors);
+        if (rawStore.isRemote()) {
+          rawStore.setGrouping(nextDescriptors);
+        }
+        setGroupVersion((v) => v + 1);
+      }
+    }
+  }, [userGroupBy, rawStore]);
+
+  const prevUserExpandedGroupKeysRef = useRef<Set<string> | string[] | undefined>(userExpandedGroupKeys);
+  useEffect(() => {
+    if (userExpandedGroupKeys !== undefined && userExpandedGroupKeys !== prevUserExpandedGroupKeysRef.current) {
+      prevUserExpandedGroupKeysRef.current = userExpandedGroupKeys;
+      setDefaultGroupsExpanded(false);
+      setInternalExpandedGroupKeys(new Set(userExpandedGroupKeys));
+      setGroupVersion((v) => v + 1);
+    }
+  }, [userExpandedGroupKeys]);
+
+  const defaultGroupsExpandedRef = useRef(defaultGroupsExpanded);
+  defaultGroupsExpandedRef.current = defaultGroupsExpanded;
+
+  const toggleGroupKey = useCallback(
+    (groupKey: string) => {
+      setInternalExpandedGroupKeys((prev) => {
+        const next = new Set(prev);
+        const defExp = defaultGroupsExpandedRef.current;
+        const currentlyExpanded =
+          next.has(groupKey) || (defExp && !next.has(`!${groupKey}`));
+        if (currentlyExpanded) {
+          next.delete(groupKey);
+          if (defExp) {
+            next.add(`!${groupKey}`);
+          }
+        } else {
+          next.delete(`!${groupKey}`);
+          next.add(groupKey);
+        }
+        onGroupExpansionChanged?.(next);
+        return next;
+      });
+      setGroupVersion((v) => v + 1);
+      requestRenderRef.current();
+    },
+    [onGroupExpansionChanged]
+  );
+
+  const handleExpandAllGroups = useCallback(() => {
+    if (rawStore.isRemote()) {
+      rawStore.expandAllGroups?.();
+    }
+    setDefaultGroupsExpanded(true);
+    setInternalExpandedGroupKeys(new Set());
+    setGroupVersion((v) => v + 1);
+    setStoreVersion((v) => v + 1);
+    requestRenderRef.current();
+  }, [rawStore]);
+
+  const handleCollapseAllGroups = useCallback(() => {
+    if (rawStore.isRemote()) {
+      rawStore.collapseAllGroups?.();
+    }
+    setDefaultGroupsExpanded(false);
+    setInternalExpandedGroupKeys(new Set());
+    setGroupVersion((v) => v + 1);
+    setStoreVersion((v) => v + 1);
+    requestRenderRef.current();
+  }, [rawStore]);
+
+  const groupedProjection = useMemo<{
+    rows: GroupedRow[];
+    rawIndexMap: WeakMap<object, number>;
+  } | null>(() => {
+    if (rawStore.isRemote() || !internalGroupBy || internalGroupBy.length === 0) {
+      return null;
+    }
+
+    const rawRows: any[] = [];
+    const rawIndexMap = new WeakMap<object, number>();
+    const count = rawStore.getRowCount();
+    for (let i = 0; i < count; i++) {
+      const vr = rawStore.getViewRow(i);
+      if (!vr) continue;
+      if (vr.type === 'data') {
+        rawRows.push(vr.data);
+        if (vr.data && typeof vr.data === 'object') {
+          rawIndexMap.set(vr.data, vr.rawIndex ?? i);
+        }
+      } else if (!(vr as any).__isGroup && vr.type !== 'group') {
+        const d = (vr as any).data || vr;
+        rawRows.push(d);
+        if (d && typeof d === 'object') {
+          rawIndexMap.set(d, i);
+        }
+      }
+    }
+
+    const summaryTypesMap: Record<string, SummaryType> =
+      (rawStore as any).getSummaryTypes?.() || {};
+    const aggregations: GroupAggregation[] = [];
+    for (const [field, sType] of Object.entries(summaryTypesMap)) {
+      if (
+        sType === 'sum' ||
+        sType === 'avg' ||
+        sType === 'min' ||
+        sType === 'max' ||
+        sType === 'count'
+      ) {
+        aggregations.push({ field, type: sType });
+      }
+    }
+
+    const rows = RowGroupingEngine.transform(rawRows, internalGroupBy, {
+      expandedKeys: internalExpandedGroupKeys,
+      aggregations,
+      defaultExpanded: defaultGroupsExpanded,
+    });
+
+    return { rows, rawIndexMap };
+  }, [rawStore, storeVersion, groupVersion, internalGroupBy, internalExpandedGroupKeys, defaultGroupsExpanded]);
+
+  const store = useMemo<IDataStore>(() => {
+    if (!groupedProjection) return rawStore;
+
+    const { rows: groupedVirtualRows, rawIndexMap } = groupedProjection;
+
+    const getGroupedViewRow = (index: number) => {
+      const item = groupedVirtualRows[index];
+      if (!item) return undefined;
+      if (isGroupRow(item)) {
+        return {
+          ...item,
+          type: 'group' as const,
+          field: item.groupField,
+          value: item.groupValue,
+          rowCount: item.childrenCount,
+          summaries: item.aggregations,
+        } as any;
+      }
+      return {
+        type: 'data' as const,
+        rawIndex: rawIndexMap.get(item) ?? (item as any).__rawIndex ?? index,
+        data: item,
+      } as any;
+    };
+
+    return new Proxy(rawStore, {
+      get(target, prop) {
+        if (prop === 'getRowCount') return () => groupedVirtualRows.length;
+        if (prop === 'getViewRow') return getGroupedViewRow;
+        if (prop === 'toggleGroup') {
+          return async (groupKey: string) => {
+            toggleGroupKey(groupKey);
+          };
+        }
+        if (prop === 'expandAllGroups') return handleExpandAllGroups;
+        if (prop === 'collapseAllGroups') return handleCollapseAllGroups;
+        if (prop === 'setGrouping') {
+          return async (descriptors: GroupDescriptor[]) => {
+            if (target.isRemote()) {
+              return target.setGrouping(descriptors);
+            }
+          };
+        }
+        if (prop === 'insertRow') {
+          return async (rowData: Record<string, any>, targetViewRowIndex?: number) => {
+            let mappedIdx = targetViewRowIndex;
+            if (targetViewRowIndex !== undefined && targetViewRowIndex >= 0) {
+              const vr = getGroupedViewRow(targetViewRowIndex);
+              mappedIdx = vr && vr.type === 'data' ? vr.rawIndex : undefined;
+            }
+            return target.insertRow?.(rowData, mappedIdx);
+          };
+        }
+        if (prop === 'duplicateRow') {
+          return async (rowKey: any, targetViewRowIndex?: number) => {
+            let mappedIdx = targetViewRowIndex;
+            if (targetViewRowIndex !== undefined && targetViewRowIndex >= 0) {
+              const vr = getGroupedViewRow(targetViewRowIndex);
+              mappedIdx = vr && vr.type === 'data' ? vr.rawIndex : undefined;
+            }
+            return (target as any).duplicateRow?.(rowKey, mappedIdx);
+          };
+        }
+        const val = Reflect.get(target, prop, target);
+        return typeof val === 'function' ? val.bind(target) : val;
+      },
+    });
+  }, [rawStore, groupedProjection, toggleGroupKey, handleExpandAllGroups, handleCollapseAllGroups]);
+
+  const effectiveStore = store;
 
   // 3. Theme Resolution
   const [currentThemeName, setCurrentThemeName] = useState<ThemeInput>(userTheme);
@@ -527,7 +777,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     columnGroups,
     groupHeaderHeight,
     rowSelectionMode,
-    rowCount: store.getRowCount(),
+    rowCount: effectiveStore.getRowCount(),
     storageKey,
     hiddenColumns,
     columnOrder,
@@ -570,7 +820,6 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     }
     return initialSort;
   });
-  const [groups, setGroups] = useState<GroupDescriptor[]>(initialGroups);
   const [columnFilters, setColumnFilters] = useState<Record<string, ColumnFilterState>>(() => {
     if (storageKey) {
       try {
@@ -666,24 +915,24 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
   }, []);
 
   // Store listener
-  const [storeVersion, setStoreVersion] = useState<number>(0);
   useEffect(() => {
     const handleUpdate = () => {
       setStoreVersion((v) => v + 1);
+      setGroupVersion((v) => v + 1);
       requestRenderRef.current();
     };
-    if (typeof store.subscribe === 'function') {
-      const unsubscribe = store.subscribe(handleUpdate);
+    if (typeof rawStore.subscribe === 'function') {
+      const unsubscribe = rawStore.subscribe(handleUpdate);
       return () => {
         unsubscribe?.();
       };
-    } else if (typeof store.on === 'function') {
-      store.on('loaded', handleUpdate);
+    } else if (typeof rawStore.on === 'function') {
+      rawStore.on('loaded', handleUpdate);
       return () => {
-        store.off?.('loaded', handleUpdate);
+        rawStore.off?.('loaded', handleUpdate);
       };
     }
-  }, [store]);
+  }, [rawStore]);
 
   // Persist columnFilters and sortRules changes per storageKey
   const hydratedStorageKeyRef = useRef<string | undefined>(storageKey);
@@ -710,8 +959,8 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       if (initialSort.length > 0) {
         store.setSorting(initialSort);
       }
-      if (initialGroups.length > 0) {
-        store.setGrouping(initialGroups);
+      if (initialGroups.length > 0 && rawStore.isRemote()) {
+        rawStore.setGrouping(initialGroups);
       }
       setStoreVersion((v) => v + 1);
       requestRender();
@@ -748,12 +997,12 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
 
     const compiled = compileColumnFilters(savedFilters);
     if (compiled) {
-      store.setFilter(compiled);
-    } else if ((store as any).hasActiveFilter?.()) {
-      store.setFilter(null);
+      rawStore.setFilter(compiled);
+    } else if ((rawStore as any).hasActiveFilter?.()) {
+      rawStore.setFilter(null);
     }
     if (savedSort.length > 0) {
-      store.setSorting(savedSort);
+      rawStore.setSorting(savedSort);
     }
 
     const timer = window.setTimeout(() => {
@@ -767,9 +1016,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         scrollSaveTimerRef.current = null;
       }
     };
-  }, [storageKey, store]);
-
-  const requestRenderRef = useRef<() => void>(() => { });
+  }, [storageKey, rawStore]);
 
   // 5b. Selection Hook
   const {
@@ -839,7 +1086,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       CanvasRenderer.render({
         canvas: canvasRef.current,
         geometry: geometryRef.current,
-        store,
+        store: effectiveStore,
         selection: selectionRef.current,
         theme: resolvedTheme,
         locale: currentLocale,
@@ -866,7 +1113,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       }
     });
   }, [
-    store,
+    effectiveStore,
     resolvedTheme,
     currentLocale,
     sortRules,
@@ -948,14 +1195,14 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       return;
     }
     const safeFilename = typeof filename === 'string' && filename.trim() ? filename.trim() : undefined;
-    ExportEngine.exportAsCsv(geometryRef.current.columns, store, safeFilename);
-  }, [permissions.allowExport, onExport, store]);
+    ExportEngine.exportAsCsv(geometryRef.current.columns, rawStore, safeFilename);
+  }, [permissions.allowExport, onExport, rawStore]);
 
   const exportExcel = useCallback((filename?: string) => {
     if (permissions.allowExport === false) return;
     const safeFilename = typeof filename === 'string' && filename.trim() ? filename.trim() : undefined;
-    ExportEngine.exportAsExcel(geometryRef.current.columns, store, safeFilename);
-  }, [permissions.allowExport, store]);
+    ExportEngine.exportAsExcel(geometryRef.current.columns, rawStore, safeFilename);
+  }, [permissions.allowExport, rawStore]);
 
   // 6b. Expose Imperative GridApi
   const gridApi = useMemo<GridApi>(
@@ -964,7 +1211,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       selectCell,
       selectRange,
       clearSelection,
-      selectAll: () => selectAll(store.getRowCount(), geometryRef.current.columns.length),
+      selectAll: () => selectAll(effectiveStore.getRowCount(), geometryRef.current.columns.length),
       getActiveCell,
       getSelectedRange,
       ensureCellVisible,
@@ -997,7 +1244,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       setColumnWidth: handleSetColumnWidth,
       getColumnWidth: handleGetColumnWidth,
       getTotalWidth,
-      getTotalHeight: () => getTotalHeight(store.getRowCount()),
+      getTotalHeight: () => getTotalHeight(effectiveStore.getRowCount()),
       startEditingCell: (col: number, row: number, initialChar?: string) => {
         openEditorRef.current(row, col, initialChar);
       },
@@ -1021,8 +1268,8 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         }
       },
       applyTransaction: async (updates: any[], idField?: string) => {
-        const key = idField || (store as any).keyField || 'id';
-        await streamingEngineRef.current.applyTransaction(updates, key, store);
+        const key = idField || (rawStore as any).keyField || 'id';
+        await streamingEngineRef.current.applyTransaction(updates, key, rawStore);
         setStoreVersion((v) => v + 1);
         requestRender();
       },
@@ -1041,6 +1288,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       moveColumn: handleMoveColumn,
       autoSizeColumn,
       autoSizeAllColumns,
+      showToast,
     }),
     [
       handleSetColumnVisibility,
@@ -1050,12 +1298,13 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       handleMoveColumn,
       autoSizeColumn,
       autoSizeAllColumns,
+      showToast,
       requestRender,
       selectCell,
       selectRange,
       clearSelection,
       selectAll,
-      store,
+      effectiveStore,
       getActiveCell,
       getSelectedRange,
       ensureCellVisible,
@@ -1073,7 +1322,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
 
   useEffect(() => {
     requestRender();
-  }, [requestRender, resolvedTheme, currentLocale, storeVersion, effectiveColumns, selectionVersion, rowSelectionMode, selectedRowKeysSet]);
+  }, [requestRender, resolvedTheme, currentLocale, storeVersion, groupVersion, effectiveColumns, selectionVersion, rowSelectionMode, selectedRowKeysSet, effectiveStore]);
 
   // 6c. PDF Preview Custom Event Listener
   useEffect(() => {
@@ -1098,6 +1347,64 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       window.removeEventListener('sheetgl-open-pdf', handleOpenPdfEvent);
     };
   }, [onPdfPreviewClick]);
+  const openDropdownMenuForCell = useCallback(
+    (rowIdx: number, colIdx: number, colDef: ColumnDef, rowData: any): boolean => {
+      const colType = (colDef.type || '').toLowerCase();
+      if (
+        (colType !== 'action' && colType !== 'dropdownbutton') ||
+        (!colDef.actionMenuItems && !(colType === 'dropdownbutton' && colDef.options))
+      ) {
+        return false;
+      }
+
+      const baseItems: ActionMenuItem[] = colDef.actionMenuItems
+        ? typeof colDef.actionMenuItems === 'function'
+          ? colDef.actionMenuItems(rowData, rowIdx)
+          : colDef.actionMenuItems
+        : (colDef.options || []).map((opt) => ({
+            id: opt.value,
+            label: opt.label,
+            icon: opt.icon,
+          }));
+
+      const resolvedItems = baseItems.map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              onClick: (r: any, idx: number) => {
+                item.onClick?.(r, idx);
+                colDef.onDropdownItemClick?.(item, r, idx);
+                if (item.toast) {
+                  const msg = typeof item.toast === 'function' ? item.toast(r, idx) : item.toast;
+                  if (msg) showToast(msg, item.toastType || 'info');
+                }
+              },
+            }
+      );
+
+      if (!resolvedItems || resolvedItems.length === 0) return false;
+
+      const geom = geometryRef.current;
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      const screenRect = geom.getColumnScreenRect(colIdx, scrollPosRef.current.left);
+      const cellY = geom.headerHeight + rowIdx * geom.rowHeight - scrollPosRef.current.top;
+
+      setActionDropdown({
+        x: (containerRect?.left ?? 0) + screenRect.x,
+        y: (containerRect?.top ?? 0) + cellY,
+        width: screenRect.width,
+        height: geom.rowHeight,
+        align: colDef.actionMenuAlign || (colType === 'dropdownbutton' ? 'left' : 'right'),
+        items: resolvedItems,
+        row: rowData,
+        rowIndex: rowIdx,
+      });
+      return true;
+    },
+    [showToast]
+  );
+
   // ============================================================================
   // PERMISSION & EDITABILITY CHECKER
   // ============================================================================
@@ -1105,7 +1412,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     (row: Record<string, any> | undefined, colDef: ColumnDef | undefined, rowIndex: number = 0, silent: boolean = false): boolean => {
       if (!colDef || !row) return false;
       const cType = (colDef.type || '').toLowerCase();
-      if (cType === 'sparkline' || cType === 'action' || cType === 'pdf') return false;
+      if (cType === 'sparkline' || cType === 'action' || cType === 'dropdownbutton' || cType === 'pdf') return false;
 
       if (
         permissions.mode === 'read' ||
@@ -1560,7 +1867,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         if (col.id === 'id' || col.id.startsWith('__')) continue;
         if (col.defaultValue !== undefined) {
           defaultRow[col.id] = col.defaultValue;
-        } else if (col.type === 'boolean') {
+        } else if (col.type === 'boolean' || col.type === 'switch') {
           defaultRow[col.id] = false;
         } else if (col.type === 'sparkline') {
           defaultRow[col.id] = [];
@@ -2050,7 +2357,13 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
   const handleToggleGroupColumn = (colId: string) => {
     if (permissions.allowGrouping === false) return;
     const targetCol = columns.find((c) => c.id === colId);
-    if (targetCol && (targetCol.type === 'sparkline' || targetCol.type === 'action' || targetCol.groupable === false)) {
+    if (
+      targetCol &&
+      (targetCol.type === 'sparkline' ||
+        targetCol.type === 'action' ||
+        targetCol.type === 'dropdownbutton' ||
+        targetCol.groupable === false)
+    ) {
       return;
     }
     setGroups((prevGroups) => {
@@ -2058,13 +2371,17 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       const nextGroups = exists
         ? prevGroups.filter((g) => g.selector !== colId)
         : [...prevGroups, { selector: colId }];
-      store.setGrouping(nextGroups);
+      setInternalGroupBy(nextGroups.map((g) => g.selector));
+      if (rawStore.isRemote()) {
+        rawStore.setGrouping(nextGroups);
+      }
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTop = 0;
       }
       scrollPosRef.current.top = 0;
       selectionRef.current.setActiveCell(0, 0);
       setSelectedCellUI({ row: 0, col: 0 });
+      setGroupVersion((v) => v + 1);
       setStoreVersion((v) => v + 1);
       requestRender();
 
@@ -2186,7 +2503,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         const startCol = selRange ? selRange.startCol : selectionRef.current.activeCell.col;
         const startColDef = geometryRef.current.columns[startCol];
         const startColType = (startColDef?.type || '').toLowerCase();
-        if (startColType === 'action' || startColType === 'pdf') {
+        if (startColType === 'action' || startColType === 'dropdownbutton' || startColType === 'pdf') {
           setIsDraggingSelection(false);
           return;
         }
@@ -2197,7 +2514,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       } else if (fillDragState) {
         const srcColDef = geometryRef.current.columns[fillDragState.sourceRange.minCol];
         const srcColType = (srcColDef?.type || '').toLowerCase();
-        if (srcColType === 'action' || srcColType === 'pdf') {
+        if (srcColType === 'action' || srcColType === 'dropdownbutton' || srcColType === 'pdf') {
           setFillDragState(null);
           return;
         }
@@ -2477,7 +2794,13 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       const hasCustomEditor = Boolean(colDef.editor) || CellEditorRegistry.has(colDef.type);
       const plugin = ColumnTypeRegistry.get(colDef.type);
       const hasPluginEditor = Boolean(plugin?.editorComponent);
-      const isSpecialInteractive = colDef.type === 'action' || colDef.type === 'pdf';
+      const cTypeLower = (colDef.type || '').toLowerCase();
+      const isSpecialInteractive =
+        cTypeLower === 'action' ||
+        cTypeLower === 'dropdownbutton' ||
+        cTypeLower === 'pdf' ||
+        cTypeLower === 'boolean' ||
+        cTypeLower === 'switch';
       if (isSpecialInteractive && !hasCustomEditor && !hasPluginEditor) return;
 
       const screenRect = geom.getColumnScreenRect(col, scrollPosRef.current.left);
@@ -2574,6 +2897,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       !activeColForHover ||
       hoverColType === 'sparkline' ||
       hoverColType === 'action' ||
+      hoverColType === 'dropdownbutton' ||
       hoverColType === 'pdf' ||
       CanvasRenderer.isColumnReadonly(activeColForHover, permissions);
 
@@ -2601,7 +2925,15 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       requestRender();
     }
     const hoveredCol = hit ? geom.columns[hit.col] : null;
-    if (hoveredCol && (hoveredCol.onCellClick || hoveredCol.type === 'action' || hoveredCol.type === 'pdf' || hoveredCol.type === 'rfi')) {
+    const hoveredColType = (hoveredCol?.type || '').toLowerCase();
+    if (
+      hoveredCol &&
+      (hoveredCol.onCellClick ||
+        hoveredColType === 'action' ||
+        hoveredColType === 'dropdownbutton' ||
+        hoveredColType === 'pdf' ||
+        hoveredColType === 'rfi')
+    ) {
       setCursorStyle('pointer');
     } else {
       setCursorStyle('cell');
@@ -2736,17 +3068,25 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       return;
     }
 
-    // C2. Group Row Click (Works anywhere across the group row, including the left ▶/▼ chevron!)
+    // C2. Group Row Click (Works anywhere across the group row, including the left toggle button!)
     if (y > geom.headerHeight) {
       const clickedRowIdx = Math.floor((y - geom.headerHeight + st) / geom.rowHeight);
       if (clickedRowIdx >= 0 && clickedRowIdx < rowCount) {
-        const clickedVRow = store.getViewRow(clickedRowIdx);
-        if (clickedVRow && clickedVRow.type === 'group') {
-          store.toggleGroup(clickedVRow.groupKey);
-          setStoreVersion((v) => v + 1);
-          requestRender();
-          containerRef.current?.focus();
-          return;
+        const clickedVRow = effectiveStore.getViewRow(clickedRowIdx);
+        const isGroup = Boolean(
+          (clickedVRow as any)?.__isGroup ||
+          clickedVRow?.type === 'group' ||
+          (clickedVRow as any)?.data?.__isGroup
+        );
+        if (isGroup) {
+          const gKey = (clickedVRow as any)?.groupKey || (clickedVRow as any)?.data?.groupKey;
+          if (gKey) {
+            store.toggleGroup(gKey);
+            setStoreVersion((v) => v + 1);
+            requestRender();
+            containerRef.current?.focus();
+            return;
+          }
         }
       }
     }
@@ -2759,6 +3099,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
       !activeColForDup ||
       dupColType === 'sparkline' ||
       dupColType === 'action' ||
+      dupColType === 'dropdownbutton' ||
       dupColType === 'pdf' ||
       CanvasRenderer.isColumnReadonly(activeColForDup, permissions);
 
@@ -2803,16 +3144,27 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     const hit = geom.hitTest(x, y, sl, st, rowCount);
     if (!hit) return;
 
-    const vRow = store.getViewRow(hit.row);
+    const vRow = effectiveStore.getViewRow(hit.row);
     // Group Header Expand/Collapse
-    if (vRow && vRow.type === 'group') {
-      store.toggleGroup(vRow.groupKey);
-      return;
+    const isGroupHit = Boolean(
+      (vRow as any)?.__isGroup ||
+      vRow?.type === 'group' ||
+      (vRow as any)?.data?.__isGroup
+    );
+    if (isGroupHit) {
+      const gKey = (vRow as any)?.groupKey || (vRow as any)?.data?.groupKey;
+      if (gKey) {
+        store.toggleGroup(gKey);
+        setStoreVersion((v) => v + 1);
+        requestRender();
+        return;
+      }
     }
 
     const colDef = geom.columns[hit.col];
     const colType = (colDef?.type || '').toLowerCase();
-    const isInteractiveCol = colType === 'action' || colType === 'pdf' || colType === 'rfi';
+    const isInteractiveCol =
+      colType === 'action' || colType === 'dropdownbutton' || colType === 'pdf' || colType === 'rfi';
 
     if (e.shiftKey && !isInteractiveCol) {
       selectionRef.current.setRangeEnd(hit.row, hit.col);
@@ -2837,6 +3189,20 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     }
 
     // Column Custom Cell Click Handler (e.g. inline picker, modal, workflow action)
+    if (onCellClick && vRow && vRow.type === 'data') {
+      const screenRect = geom.getColumnScreenRect(hit.col, sl);
+      onCellClick({
+        rowIndex: hit.row,
+        column: colDef,
+        row: vRow.data,
+        rect: {
+          x: screenRect.x,
+          y: geom.headerHeight + hit.row * geom.rowHeight - st,
+          width: screenRect.width,
+          height: geom.rowHeight,
+        },
+      });
+    }
     if (colDef.onCellClick && vRow && vRow.type === 'data') {
       setIsDraggingSelection(false);
       setFillDragState(null);
@@ -2899,40 +3265,18 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     }
 
     if (plugin.onPointerDown && vRow && vRow.type === 'data') {
-      // Action, PDF & RFI columns work even in read mode; mutable plugins check canEditCell
-      const isActionOrPdf = colType === 'action' || colType === 'pdf' || colType === 'rfi';
+      // Action, DropdownButton, PDF & RFI columns work even in read mode; mutable plugins check canEditCell
+      const isActionOrPdf =
+        colType === 'action' || colType === 'dropdownbutton' || colType === 'pdf' || colType === 'rfi';
       if (isActionOrPdf || canEditCell(vRow.data, colDef, hit.row, false)) {
-        // If this is an action column with actionMenuItems, open the action dropdown overlay
-        if (colType === 'action' && colDef.actionMenuItems) {
-          const rawItems = typeof colDef.actionMenuItems === 'function'
-            ? colDef.actionMenuItems(vRow.data, hit.row)
-            : colDef.actionMenuItems;
-
-          if (rawItems && rawItems.length > 0) {
-            const containerRect = containerRef.current?.getBoundingClientRect();
-            const screenRect = geom.getColumnScreenRect(hit.col, sl);
-            const cellY = geom.headerHeight + hit.row * geom.rowHeight - st;
-            const clientX = (containerRect?.left ?? 0) + screenRect.x;
-            const clientY = (containerRect?.top ?? 0) + cellY;
-
-            setIsDraggingSelection(false);
-            setFillDragState(null);
-            selectionRef.current.setActiveCell(hit.row, hit.col);
-            setSelectionVersion((v) => v + 1);
-
-            setActionDropdown({
-              x: clientX,
-              y: clientY,
-              width: screenRect.width,
-              height: geom.rowHeight,
-              align: colDef.actionMenuAlign || 'right',
-              items: rawItems,
-              row: vRow.data,
-              rowIndex: hit.row,
-            });
-            requestRender();
-            return;
-          }
+        // If this is an action or dropdownbutton column with menu items/options, open the dropdown overlay
+        if (openDropdownMenuForCell(hit.row, hit.col, colDef, vRow.data)) {
+          setIsDraggingSelection(false);
+          setFillDragState(null);
+          selectionRef.current.setActiveCell(hit.row, hit.col);
+          setSelectionVersion((v) => v + 1);
+          requestRender();
+          return;
         }
 
         let shouldFocusContainer = true;
@@ -3258,7 +3602,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         const emptyVal =
           colDef.type === 'progress' || colDef.type === 'rating'
             ? 0
-            : colDef.type === 'boolean'
+            : colDef.type === 'boolean' || colDef.type === 'switch'
               ? false
               : '';
         updates.push({
@@ -3604,8 +3948,13 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
     if (colDef && vRow && vRow.type === 'data' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const plugin = ColumnTypeRegistry.get(colDef.type);
       if (plugin.onKeyDown) {
-        const isAction = colDef.type === 'action';
+        const keyColType = (colDef.type || '').toLowerCase();
+        const isAction = keyColType === 'action' || keyColType === 'dropdownbutton';
         if (isAction || canEditCell(vRow.data, colDef, row, true)) {
+          if (isAction && (e.key === 'Enter' || e.key === ' ') && openDropdownMenuForCell(row, col, colDef, vRow.data)) {
+            e.preventDefault();
+            return;
+          }
           const handled = plugin.onKeyDown({
             event: e,
             value: vRow.data[colDef.id],
@@ -4028,14 +4377,14 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
           <div
             style={{
               width: getTotalWidth(),
-              height: getTotalHeight(store.getRowCount()),
+              height: getTotalHeight(effectiveStore.getRowCount()),
               pointerEvents: 'none',
             }}
           />
         </div>
 
         {/* Right-Side Scroll Indicator Pill & Quick Jump Buttons */}
-        {scrollIndicator.visible && store.getRowCount() > 30 && (
+        {scrollIndicator.visible && effectiveStore.getRowCount() > 30 && (
           <div
             style={{
               position: 'absolute',
@@ -4296,7 +4645,7 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
               viewportHeight={typeof window !== 'undefined' ? window.innerHeight : (gridSurfaceRef.current?.clientHeight || 800)}
               theme={resolvedTheme}
               locale={currentLocale}
-              store={store}
+              store={rawStore}
               activeFilter={columnFilters[headerFilterState.column.id]}
               baseFilter={activeBaseFilter}
               onApply={(filterState) => {

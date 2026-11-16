@@ -2,24 +2,93 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://sheetgl.dev/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sheetgl.dev/" />
-    <xhtml:link rel="alternate" hreflang="tr" href="https://sheetgl.dev/?lang=tr" />
+    <loc>https://sheetgl.truncgil.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sheetgl.truncgil.com/" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://sheetgl.truncgil.com/?lang=tr" />
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://sheetgl.dev/documentation</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sheetgl.dev/documentation" />
-    <xhtml:link rel="alternate" hreflang="tr" href="https://sheetgl.dev/documentation?lang=tr" />
+    <loc>https://sheetgl.truncgil.com/demo</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sheetgl.truncgil.com/demo" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://sheetgl.truncgil.com/demo?lang=tr" />
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://sheetgl.dev/demo</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sheetgl.dev/demo" />
-    <xhtml:link rel="alternate" hreflang="tr" href="https://sheetgl.dev/demo?lang=tr" />
+    <loc>https://sheetgl.truncgil.com/documentation</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sheetgl.truncgil.com/documentation" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://sheetgl.truncgil.com/documentation?lang=tr" />
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/quickstart</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/columns</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/validation</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/permissions</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/events</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/filtering</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/excel-ux</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/batch-store</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/toolbar-summary</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/theming-i18n</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sheetgl.truncgil.com/documentation/column-groups-colors</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

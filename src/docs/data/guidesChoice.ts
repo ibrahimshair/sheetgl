@@ -47,6 +47,45 @@ export const CHOICE_GUIDES: ColumnGuideItem[] = [
 }`,
   },
   {
+    type: 'switch',
+    colId: 'isActiveSwitch',
+    category: 'choice',
+    categoryLabelTr: 'Seçim & İlişkisel',
+    categoryLabelEn: 'Selection & Relational',
+    titleTr: 'Anahtar Sütunu (Switch)',
+    titleEn: 'Toggle Switch Column (switch)',
+    dataType: 'boolean',
+    sampleValue: 'true | false',
+    summaryTr:
+      'Onay kutusuna (boolean) alternatif olarak modern bir Açık/Kapalı anahtar (toggle switch) çizer. Açık durumda yeşil zemin üzerinde ✓ ikonu, kapalı durumda gri zemin üzerinde ✕ ikonu gösterir. Tek tıklama veya Space/Enter ile değer anında değişir.',
+    summaryEn:
+      'Renders a modern pill toggle switch on the HTML5 Canvas as an alternative to a checkbox. Shows an emerald track with a ✓ thumb when ON and a slate track with a ✕ thumb when OFF. Toggles immediately on single click or Space/Enter.',
+    editorTr: 'Hücre içindeki anahtara tek tıklama veya Space/Enter tuşu ile anında değişir.',
+    editorEn: 'Single-click directly on the canvas switch or press Space/Enter to toggle.',
+    propsList: [
+      { prop: 'canEdit', type: '(row, col) => boolean', descTr: 'Satır bazlı kilit kontrolü', descEn: 'Row-level conditional lock' },
+    ],
+    sampleColumnDef: {
+      id: 'isActiveSwitch',
+      title: 'Aktif (switch)',
+      type: 'switch',
+      width: 140,
+    },
+    sampleRows: [
+      { id: 1, company: 'Acme Global', isActiveSwitch: true },
+      { id: 2, company: 'Nexus Cloud', isActiveSwitch: false },
+      { id: 3, company: 'Vertex Labs', isActiveSwitch: true },
+    ],
+    code: `{
+  id: 'isActiveSwitch',
+  title: 'Aktif',
+  type: 'switch',
+  width: 110,
+  sortable: true,
+  filterable: true,
+}`,
+  },
+  {
     type: 'select',
     colId: 'status',
     category: 'choice',

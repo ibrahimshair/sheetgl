@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ensureMaterialSymbolsLoaded } from './materialIconLoader';
 
 export interface MaterialIconProps {
@@ -33,12 +33,31 @@ export const MaterialIcon: React.FC<MaterialIconProps> = ({
   className,
   title,
 }) => {
-  useEffect(() => {
-    ensureMaterialSymbolsLoaded();
-  }, []);
-
   const fontFamily =
     variant === 'rounded' ? '"Material Symbols Rounded"' : '"Material Symbols Outlined"';
+
+  const [fontReady, setFontReady] = useState<boolean>(() => {
+    if (typeof document === 'undefined' || !('fonts' in document)) return false;
+    return document.fonts.check(`16px ${fontFamily}`);
+  });
+
+  useEffect(() => {
+    ensureMaterialSymbolsLoaded();
+    if (typeof document === 'undefined' || !('fonts' in document)) return;
+    if (document.fonts.check(`16px ${fontFamily}`)) {
+      setFontReady(true);
+      return;
+    }
+    let active = true;
+    document.fonts.ready.then(() => {
+      if (active && document.fonts.check(`16px ${fontFamily}`)) {
+        setFontReady(true);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [fontFamily]);
 
   return (
     <span
@@ -65,6 +84,8 @@ export const MaterialIcon: React.FC<MaterialIconProps> = ({
         fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' ${weight}, 'GRAD' 0, 'opsz' ${Math.max(20, Math.min(48, size))}`,
         width: size,
         height: size,
+        overflow: 'hidden',
+        visibility: fontReady ? 'visible' : 'hidden',
         flexShrink: 0,
         userSelect: 'none',
         color,

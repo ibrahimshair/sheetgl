@@ -34,7 +34,9 @@ export const ColumnGuideCard: React.FC<ColumnGuideCardProps> = ({
     >
       {/* Card Header */}
       <div
+        id={`col-type-${col.type}-overview`}
         style={{
+          scrollMarginTop: 16,
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
@@ -157,6 +159,7 @@ export const ColumnGuideCard: React.FC<ColumnGuideCardProps> = ({
       </div>
 
       {/* Type-Specific Props Table */}
+      <div id={`col-type-${col.type}-formatting`} style={{ scrollMarginTop: 16 }} />
       {col.propsList.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: colors.muted, marginBottom: 8 }}>

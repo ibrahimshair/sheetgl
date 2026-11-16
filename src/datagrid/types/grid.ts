@@ -11,6 +11,7 @@ export type ColumnType =
   | 'currency'
   | 'percent'
   | 'boolean'
+  | 'switch'
   | 'select'
   | 'dropdown'
   | 'multiselect'
@@ -30,6 +31,7 @@ export type ColumnType =
   | 'rating'
   | 'sparkline'
   | 'action'
+  | 'dropdownbutton'
   | (string & {});
 
 export type ColumnPermission = 'write' | 'readonly' | 'read';
@@ -266,6 +268,10 @@ export interface ActionMenuItem {
   divider?: boolean;
   /** Callback fired when the item is clicked */
   onClick?: (row: any, rowIndex: number) => void;
+  /** Optional SheetGL toast message shown automatically when this item is clicked */
+  toast?: string | ((row: any, rowIndex: number) => string);
+  /** Toast severity style (default: 'info') */
+  toastType?: 'info' | 'warning' | 'success';
 }
 
 export interface ColumnDef {
@@ -290,7 +296,11 @@ export interface ColumnDef {
   options?: SelectOption[];
   sparklineColor?: string;
   buttonText?: string;
+  /** Optional MaterialIcon name (e.g. 'save', 'download') or emoji for 'dropdownbutton' / 'action' columns */
+  buttonIcon?: string;
   onActionClick?: (row: any, rowIndex: number) => void;
+  /** Optional column-level callback fired when a menu item in a 'dropdownbutton' column is clicked */
+  onDropdownItemClick?: (item: ActionMenuItem, row: any, rowIndex: number) => void;
   /** Custom handler when a cell in this column is clicked */
   onCellClick?: (row: any, rowIndex: number, value: any) => void;
   /** Placeholder text shown when cell value is empty or null */

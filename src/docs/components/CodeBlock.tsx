@@ -37,9 +37,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         margin: '16px 0 24px',
         borderRadius: 12,
         overflow: 'hidden',
-        border: `1px solid ${isDark ? '#1E293B' : '#334155'}`,
+        border: `1px solid ${isDark ? '#1E293B' : colors.border}`,
         backgroundColor: colors.codeBg,
-        boxShadow: isDark ? '0 12px 30px rgba(0,0,0,0.4)' : '0 8px 24px rgba(15,23,42,0.12)',
+        boxShadow: isDark ? '0 12px 30px rgba(0,0,0,0.4)' : '0 4px 16px rgba(15,23,42,0.06)',
       }}
     >
       {/* IDE Top Bar */}
@@ -52,7 +52,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           gap: 8,
           padding: '10px 14px',
           backgroundColor: colors.codeHeaderBg,
-          borderBottom: '1px solid #1E293B',
+          borderBottom: `1px solid ${isDark ? '#1E293B' : colors.border}`,
           fontSize: 12.5,
           fontFamily: "'JetBrains Mono', monospace",
         }}
@@ -67,8 +67,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             style={{
               padding: '2px 8px',
               borderRadius: 5,
-              backgroundColor: 'rgba(56, 189, 248, 0.16)',
-              color: '#38BDF8',
+              backgroundColor: colors.accentBg,
+              color: colors.accent,
               fontWeight: 700,
               fontSize: 11,
               flexShrink: 0,
@@ -76,7 +76,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           >
             {langBadge}
           </span>
-          <span style={{ color: '#F8FAFC', fontWeight: 600, wordBreak: 'break-word' }}>{title}</span>
+          <span style={{ color: isDark ? '#F8FAFC' : colors.text, fontWeight: 600, wordBreak: 'break-word' }}>{title}</span>
           <span style={{ color: '#64748B', fontSize: 11 }}>({lines.length} lines)</span>
         </div>
         <button
@@ -85,9 +85,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           style={{
             padding: '5px 12px',
             borderRadius: 6,
-            border: '1px solid #334155',
-            backgroundColor: copied ? '#10B981' : '#0F172A',
-            color: '#FFFFFF',
+            border: `1px solid ${isDark ? '#334155' : '#CBD5E1'}`,
+            backgroundColor: copied ? '#10B981' : isDark ? '#0F172A' : '#FFFFFF',
+            color: copied ? '#FFFFFF' : isDark ? '#FFFFFF' : '#334155',
             fontSize: 12,
             cursor: 'pointer',
             fontWeight: 600,
@@ -105,7 +105,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           fontSize: 13.5,
           lineHeight: 1.68,
           fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
-          color: '#E2E8F0',
+          color: isDark ? '#E2E8F0' : '#0F172A',
         }}
       >
         {lines.map((line, i) => (
@@ -124,14 +124,14 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                 userSelect: 'none',
                 paddingRight: 16,
                 textAlign: 'right',
-                color: '#475569',
+                color: isDark ? '#475569' : '#94A3B8',
                 fontSize: 12,
               }}
             >
               {i + 1}
             </span>
             <span style={{ whiteSpace: 'pre', flex: 1 }}>
-              {renderHighlightedLine(line, true)}
+              {renderHighlightedLine(line, isDark)}
             </span>
           </div>
         ))}

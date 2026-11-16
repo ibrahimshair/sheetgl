@@ -90,6 +90,10 @@ export const ActionDropdownOverlay: React.FC<ActionDropdownOverlayProps> = ({
     <div
       ref={menuRef}
       role="menu"
+      onMouseDown={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+      onMouseUp={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: 'fixed',
         left,

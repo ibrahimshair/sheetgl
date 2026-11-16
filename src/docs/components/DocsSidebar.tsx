@@ -7,6 +7,7 @@ export interface DocsSidebarProps {
   activeSectionId: string;
   activeSubId: string;
   expandedSections: Record<string, boolean>;
+  expandedSubItems?: Record<string, boolean>;
   searchQuery: string;
   isTR: boolean;
   colors: DocThemeColors;
@@ -16,7 +17,8 @@ export interface DocsSidebarProps {
   onSearchChange: (q: string) => void;
   onSelectSection: (id: string) => void;
   onToggleExpandSection: (id: string) => void;
-  onSelectSubItem: (sectionId: string, sub: DocSubItem) => void;
+  onToggleExpandSubItem?: (subId: string) => void;
+  onSelectSubItem: (sectionId: string, sub: DocSubItem, parentSubId?: string) => void;
 }
 
 export const DocsSidebar: React.FC<DocsSidebarProps> = ({
@@ -24,6 +26,7 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
   activeSectionId,
   activeSubId,
   expandedSections,
+  expandedSubItems = {},
   searchQuery,
   isTR,
   colors,
@@ -33,6 +36,7 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
   onSearchChange,
   onSelectSection,
   onToggleExpandSection,
+  onToggleExpandSubItem,
   onSelectSubItem,
 }) => {
   if (isMobile && !mobileOpen) {
@@ -178,27 +182,94 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
                 }}
               >
                 {sec.subItems.map((sub) => {
+                  const hasChildren = Boolean(sub.children && sub.children.length > 0);
+                  const isChildSelected = Boolean(
+                    isActive && sub.children?.some((child) => child.id === activeSubId)
+                  );
                   const isSubActive = isActive && activeSubId === sub.id;
+                  const isSubExpanded = Boolean(
+                    expandedSubItems[sub.id] || searchQuery.trim() || isChildSelected
+                  );
+
                   return (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      onClick={() => onSelectSubItem(sec.id, sub)}
-                      style={{
-                        textAlign: 'left',
-                        padding: '6px 10px',
-                        borderRadius: 6,
-                        border: 'none',
-                        backgroundColor: isSubActive ? colors.accentBg : 'transparent',
-                        color: isSubActive ? colors.accent : colors.muted,
-                        fontSize: 12.5,
-                        fontWeight: isSubActive ? 700 : 500,
-                        cursor: 'pointer',
-                        lineHeight: 1.35,
-                      }}
-                    >
-                      {isTR ? sub.labelTr : sub.labelEn}
-                    </button>
+                    <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (hasChildren) {
+                            onToggleExpandSubItem?.(sub.id);
+                            if (!isSubExpanded) {
+                              onSelectSubItem(sec.id, sub);
+                            }
+                          } else {
+                            onSelectSubItem(sec.id, sub);
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          textAlign: 'left',
+                          padding: '6px 10px',
+                          borderRadius: 6,
+                          border: 'none',
+                          backgroundColor: isSubActive ? colors.accentBg : 'transparent',
+                          color: isSubActive || isChildSelected ? colors.text : colors.muted,
+                          fontSize: 12.5,
+                          fontWeight: isSubActive || isChildSelected ? 700 : 500,
+                          cursor: 'pointer',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {hasChildren && (
+                          <MaterialIcon
+                            name={isSubExpanded ? 'expand_more' : 'chevron_right'}
+                            size={14}
+                            color={isSubExpanded || isChildSelected ? colors.accent : colors.muted}
+                          />
+                        )}
+                        <span style={{ flex: 1 }}>{isTR ? sub.labelTr : sub.labelEn}</span>
+                      </button>
+
+                      {hasChildren && isSubExpanded && sub.children && (
+                        <div
+                          style={{
+                            marginLeft: 18,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                            marginBottom: 4,
+                          }}
+                        >
+                          {sub.children.map((child) => {
+                            const isChildActive = isActive && activeSubId === child.id;
+                            return (
+                              <button
+                                key={child.id}
+                                type="button"
+                                onClick={() => onSelectSubItem(sec.id, child, sub.id)}
+                                style={{
+                                  textAlign: 'left',
+                                  padding: '5px 10px',
+                                  borderRadius: 5,
+                                  border: isChildActive
+                                    ? `1px solid ${colors.accent}`
+                                    : '1px solid transparent',
+                                  backgroundColor: isChildActive ? colors.accentBg : 'transparent',
+                                  color: isChildActive ? colors.accent : colors.muted,
+                                  fontSize: 12,
+                                  fontWeight: isChildActive ? 700 : 500,
+                                  cursor: 'pointer',
+                                  lineHeight: 1.35,
+                                }}
+                              >
+                                {isTR ? child.labelTr : child.labelEn}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>

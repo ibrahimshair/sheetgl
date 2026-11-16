@@ -198,30 +198,62 @@ export default function App() {
   const faqs = isTR
     ? [
         {
-          q: 'SheetGL, DevExtreme DataGrid veya ag-Grid lisansı gerektirir mi?',
-          a: 'Hayır! SheetGL sıfırdan MIT lisanslı ve açık mimariyle geliştirilmiş, tamamen özgür ve bağımsız bir HTML5 Canvas & WebGL motorudur.',
+          q: 'SheetGL, AG Grid veya DevExtreme gibi ticari lisans gerektirir mi?',
+          a: 'Hayır. SheetGL sıfırdan MIT lisansı ile geliştirilmiş %100 ücretsiz ve açık kaynaklıdır. Excel Fill Handle, çoklu sütun gruplama, özet satırları ve Batch CRUD gibi kurumsal özellikler geliştirici başı lisans ücreti olmadan sunulur.',
         },
         {
-          q: '100.000 satırda tarayıcı donar mı?',
-          a: 'Kesinlikle hayır. Yalnızca ekranda görünen hücreler (viewport) çizilir. DOM üzerinde binlerce düğüm oluşmadığı için yüksek veri hacimlerinde bile kesintisiz ve akıcı çalışır.',
+          q: '100.000+ satırda tarayıcı neden donmaz?',
+          a: 'SheetGL, O(1) prefix-sum ikili arama ve WeakMap filtre önbelleği kullanarak yalnızca ekranda görünen hücreleri tek bir yüksek DPI HTML5 Canvas üzerine çizer. Aktif düzenlenen tek hücre dışında DOM düğümü oluşturulmaz.',
         },
         {
-          q: 'Excel kısayolları ve formül barı destekleniyor mu?',
-          a: 'Evet; Ctrl+C / Ctrl+V (TSV kopyalama/yapıştırma), Ctrl+D, Ctrl+R, F2 inline edit, yön tuşlarıyla gezinti ve Formül Barı tam entegredir.',
+          q: 'Excel kısayolları, Fill Handle ve TSV kopyala/yapıştır destekleniyor mu?',
+          a: 'Evet. Sağ alt köşe Fill Handle akıllı seri doldurma, sağ kenar hızlı çoğaltma (+), Microsoft Excel ve Google Sheets ile tam uyumlu Ctrl+C / Ctrl+V (TSV), Ctrl+D, Ctrl+R, F2 inline edit, 100 adımlı Undo/Redo ve Formül Barı yerleşiktir.',
+        },
+        {
+          q: 'React 18, React 19 ve TypeScript desteği var mı?',
+          a: 'Evet. SheetGL katı TypeScript ile yazılmıştır (ColumnDef, SheetGLProps, GridApi tipleri dahil) ve sıfır harici çalışma zamanı bağımlılığı ile React 18 ve React 19 uyumludur.',
+        },
+        {
+          q: 'Batch CRUD ve asenkron backend kademeli güncelleme nasıl çalışır?',
+          a: 'batchEditMode={true} ile değiştirilen hücreler yeşil renkle vurgulanır ve onSaving olayında { inserted, updated, deleted } toplu olarak iletilir. Sütunlardaki setCellValue callback’i Promise döndürerek backend’den bağlı alanları güncelleyebilir.',
+        },
+        {
+          q: 'Büyük uzak veri setleri için Server-Side Row Model (SSRM) var mı?',
+          a: 'Evet. ServerSideRowStore ve RemoteDataStore sınıfları; blok önbellekleme, viewport tabanlı tembel yükleme, sunucu taraflı sıralama/filtreleme ve skeleton yükleme satırları sunar.',
+        },
+        {
+          q: 'SheetGL kaç adet yerleşik sütun türü içerir?',
+          a: 'SheetGL; text, number, currency, percent, boolean, switch, select, dropdown, multiselect, lookup, object, date, datetime, time, email, url, phone, color, progress, rating, sparkline, action, dropdown-button, pdf ve rfi olmak üzere 25 yerleşik sütun eklentisi ve özel ColumnTypeRegistry API’si içerir.',
         },
       ]
     : [
         {
-          q: 'Does SheetGL require a commercial DevExtreme or ag-Grid license?',
-          a: 'No! SheetGL is built from scratch under the MIT license with open architecture. Completely independent and royalty-free.',
+          q: 'Does SheetGL require a commercial AG Grid or DevExtreme license?',
+          a: 'No. SheetGL is 100% free and open-source under the MIT license with zero runtime dependencies. Enterprise capabilities such as Excel Fill Handle, multi-column grouping, dynamic summaries, and Batch CRUD are included without per-developer fees.',
         },
         {
-          q: 'Does it freeze with 100,000 rows in the browser?',
-          a: 'Never. Only visible viewport cells are painted on HTML5 Canvas. Zero DOM node pollution ensures consistent, lag-free performance.',
+          q: 'How does SheetGL handle 100,000+ rows without browser lag?',
+          a: 'SheetGL paints only visible viewport cells onto a single high-DPI HTML5 Canvas using O(1) prefix-sum binary search and WeakMap filter caching. A lightweight micro-DOM editor mounts only on the single actively edited cell.',
         },
         {
-          q: 'Are native Excel shortcuts and formula bars supported?',
-          a: 'Yes; Ctrl+C / Ctrl+V (native TSV clipboard), Ctrl+D, Ctrl+R, F2 cell edit, arrow navigation, and real-time formula bar are built-in.',
+          q: 'Are Excel shortcuts, Fill Handle, and TSV copy/paste supported?',
+          a: 'Yes. Bottom-right Fill Handle auto-incrementing series, right-side quick duplicate (+), native Ctrl+C/Ctrl+V TSV clipboard integration with Excel & Google Sheets, Ctrl+D, Ctrl+R, F2 cell edit, 100-step Undo/Redo, and a live Formula Bar are built in.',
+        },
+        {
+          q: 'Does SheetGL support React 18, React 19, and TypeScript?',
+          a: 'Yes. SheetGL is written in strict TypeScript with complete type definitions (ColumnDef, SheetGLProps, GridApi) and supports both React 18 and React 19 with zero external runtime dependencies.',
+        },
+        {
+          q: 'How do Batch CRUD and async cascading backend updates work?',
+          a: 'With batchEditMode={true}, modified cells are highlighted in green and committed atomically as { inserted, updated, deleted } via onSaving. Column setCellValue handlers can return a Promise to fetch dependent backend values and update multiple columns.',
+        },
+        {
+          q: 'Does SheetGL support Server-Side Row Model (SSRM) for remote datasets?',
+          a: 'Yes. SheetGL provides ServerSideRowStore and RemoteDataStore with block caching, viewport-based lazy fetching, remote sorting and filtering, and skeleton loading rows for million-row APIs.',
+        },
+        {
+          q: 'How many built-in column types does SheetGL include?',
+          a: 'SheetGL ships with 25 built-in column plugins—including text, number, currency, percent, boolean, switch, select, dropdown, multiselect, lookup, object, date, datetime, time, email, url, phone, color, progress, rating, sparkline, action, dropdown-button, pdf, and rfi—plus a custom ColumnTypeRegistry API.',
         },
       ];
 
@@ -1057,8 +1089,92 @@ export default function App() {
         </div>
       </section>
 
+      {/* WHAT IS SHEETGL & VERIFIABLE METRICS (GEO + AEO) */}
+      <section
+        id="overview"
+        style={{
+          maxWidth: 1120,
+          margin: '0 auto',
+          padding: isMobile ? '24px 14px 16px' : '32px 24px 20px',
+        }}
+      >
+        <div
+          style={{
+            padding: isMobile ? '22px 18px' : '28px 32px',
+            borderRadius: 16,
+            backgroundColor: colors.card,
+            border: `1px solid ${colors.cardBorder}`,
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: isMobile ? 20 : 24,
+              fontWeight: 800,
+              marginTop: 0,
+              marginBottom: 10,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {isTR ? 'SheetGL Nedir?' : 'What is SheetGL?'}
+          </h2>
+          <p
+            style={{
+              fontSize: 15,
+              lineHeight: 1.68,
+              color: colors.muted,
+              marginTop: 0,
+              marginBottom: 20,
+            }}
+          >
+            {isTR
+              ? 'SheetGL, Trunçgil Teknoloji tarafından geliştirilen, React 18 ve 19 için sıfır bağımlılıklı ve MIT lisanslı bir HTML5 Canvas & WebGL Excel DataGrid kütüphanesidir. Binlerce DOM düğümü yerine tek bir Canvas katmanı kullanarak 100.000+ satırı 60 FPS hızında işler; 25 yerleşik sütun türü, Excel Fill Handle, Batch CRUD ve SSRM sunar.'
+              : 'SheetGL is a zero-dependency, MIT-licensed HTML5 Canvas & WebGL Excel DataGrid library for React 18 and 19 developed by Trunçgil Teknoloji. By painting visible cells onto a single Canvas layer instead of thousands of DOM nodes, it renders 100,000+ rows at 60 FPS with 25 column types, Excel Fill Handle, Batch CRUD, and SSRM.'}
+          </p>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+              gap: 12,
+            }}
+          >
+            {[
+              { value: '100,000+', label: isTR ? 'Satır @ 60 FPS' : 'Rows @ 60 FPS' },
+              { value: '25', label: isTR ? 'Yerleşik Sütun Türü' : 'Built-in Column Types' },
+              { value: '0', label: isTR ? 'Harici Bağımlılık' : 'Runtime Dependencies' },
+              { value: '1 <canvas>', label: isTR ? 'Sıfır DOM Şişkinliği' : 'Zero DOM Bloat' },
+              { value: 'MIT ($0)', label: isTR ? 'Açık Kaynak Lisans' : 'Free Commercial Use' },
+            ].map((stat, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 12,
+                  border: `1px solid ${colors.border}`,
+                  backgroundColor: isDark ? 'rgba(6, 7, 11, 0.55)' : 'rgba(248, 250, 252, 0.9)',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 900,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: isDark ? '#38BDF8' : '#2563EB',
+                    marginBottom: 4,
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: colors.muted }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FEATURE PILLARS GRID */}
-      <section id="features" style={{ maxWidth: 1260, margin: '0 auto', padding: isMobile ? '32px 14px 48px' : '48px 24px 72px' }}>
+      <section id="features" style={{ maxWidth: 1260, margin: '0 auto', padding: isMobile ? '32px 14px 48px' : '48px 24px 64px' }}>
         <h2
           style={{
             textAlign: 'center',
@@ -1078,7 +1194,7 @@ export default function App() {
           }}
         >
           {features.map((f, i) => (
-            <div
+            <article
               key={i}
               style={{
                 padding: 24,
@@ -1108,18 +1224,148 @@ export default function App() {
               >
                 {f.icon}
               </div>
-              <div style={{ fontWeight: 800, fontSize: 16.5, marginBottom: 8, color: colors.text }}>
+              <h3 style={{ fontWeight: 800, fontSize: 16.5, marginTop: 0, marginBottom: 8, color: colors.text }}>
                 {f.title}
-              </div>
-              <div style={{ fontSize: 13.5, color: colors.muted, lineHeight: 1.65 }}>
+              </h3>
+              <p style={{ fontSize: 13.5, color: colors.muted, lineHeight: 1.65, margin: 0 }}>
                 {f.desc}
-              </div>
-            </div>
+              </p>
+            </article>
           ))}
         </div>
       </section>
 
-      {/* FAQ SECTION (Parabol style) */}
+      {/* COMPARISON TABLE (GEO + AEO Table Snippet) */}
+      <section id="comparison" style={{ maxWidth: 1120, margin: '0 auto', padding: isMobile ? '8px 14px 48px' : '8px 24px 64px' }}>
+        <h2
+          style={{
+            textAlign: 'center',
+            fontSize: isMobile ? 22 : 28,
+            fontWeight: 800,
+            marginBottom: 10,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {isTR
+            ? 'SheetGL; AG Grid, DevExtreme ve Handsontable ile Nasıl Karşılaştırılır?'
+            : 'How Does SheetGL Compare to AG Grid, DevExtreme & Handsontable?'}
+        </h2>
+        <p
+          style={{
+            textAlign: 'center',
+            fontSize: 14.5,
+            color: colors.muted,
+            maxWidth: 740,
+            margin: '0 auto 24px',
+            lineHeight: 1.6,
+          }}
+        >
+          {isTR
+            ? 'Ticari lisans maliyeti olmadan kurumsal Excel deneyimi ve yüksek Canvas performansı arayan React ekipleri için teknik karşılaştırma.'
+            : 'A side-by-side technical comparison for React teams evaluating zero-cost MIT alternatives to commercial enterprise data grids.'}
+        </p>
+        <div
+          style={{
+            overflowX: 'auto',
+            borderRadius: 14,
+            border: `1px solid ${colors.cardBorder}`,
+            backgroundColor: colors.card,
+          }}
+        >
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: 13.5,
+              textAlign: 'left',
+              minWidth: 640,
+            }}
+          >
+            <thead>
+              <tr
+                style={{
+                  borderBottom: `1px solid ${colors.border}`,
+                  backgroundColor: isDark ? 'rgba(134, 59, 255, 0.1)' : 'rgba(134, 59, 255, 0.05)',
+                }}
+              >
+                <th scope="col" style={{ padding: '14px 16px', fontWeight: 800 }}>
+                  {isTR ? 'Özellik' : 'Capability'}
+                </th>
+                <th scope="col" style={{ padding: '14px 16px', fontWeight: 800, color: isDark ? '#38BDF8' : '#2563EB' }}>
+                  SheetGL (v{SHEETGL_VERSION})
+                </th>
+                <th scope="col" style={{ padding: '14px 16px', fontWeight: 700, color: colors.muted }}>
+                  AG Grid Enterprise
+                </th>
+                <th scope="col" style={{ padding: '14px 16px', fontWeight: 700, color: colors.muted }}>
+                  DevExtreme DataGrid
+                </th>
+                <th scope="col" style={{ padding: '14px 16px', fontWeight: 700, color: colors.muted }}>
+                  Handsontable
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                {
+                  cap: isTR ? 'Lisans & Maliyet' : 'License & Pricing',
+                  sheetgl: isTR ? 'MIT (100% Ücretsiz)' : 'MIT (100% Free)',
+                  ag: isTR ? 'Ticari (~$999+/gel/yıl)' : 'Commercial ($999+/dev/yr)',
+                  dev: isTR ? 'Ticari (~$499+/gel/yıl)' : 'Commercial ($499+/dev/yr)',
+                  hot: isTR ? 'Ticari (SaaS/OEM ücretli)' : 'Commercial License',
+                },
+                {
+                  cap: isTR ? 'Çizim Motoru' : 'Rendering Engine',
+                  sheetgl: 'HTML5 Canvas + Micro-DOM',
+                  ag: 'DOM Virtualization',
+                  dev: 'DOM Virtualization',
+                  hot: 'DOM Table',
+                },
+                {
+                  cap: isTR ? 'Excel Fill Handle & TSV' : 'Excel Fill Handle & TSV',
+                  sheetgl: isTR ? 'Yerleşik (Ücretsiz)' : 'Built-in (Free)',
+                  ag: isTR ? 'Yalnızca Enterprise' : 'Enterprise Only',
+                  dev: isTR ? 'Sınırlı / Eklenti' : 'Partial / Custom',
+                  hot: isTR ? 'Yerleşik' : 'Built-in',
+                },
+                {
+                  cap: isTR ? 'Batch CRUD & Yeşil Takip' : 'Batch CRUD & Dirty Tracking',
+                  sheetgl: isTR ? 'Yerleşik (batchEditMode)' : 'Built-in (batchEditMode)',
+                  ag: isTR ? 'Manuel API' : 'Manual Transaction API',
+                  dev: isTR ? 'Yerleşik' : 'Built-in',
+                  hot: isTR ? 'Manuel' : 'Manual',
+                },
+                {
+                  cap: isTR ? 'Yerleşik Sütun Türleri' : 'Built-in Column Types',
+                  sheetgl: isTR ? '25 Sütun Eklentisi' : '25 Column Plugins',
+                  ag: isTR ? 'Temel + Özel Render' : 'Core + Custom Renderers',
+                  dev: isTR ? '8+ Temel Editör' : '8+ Core Editors',
+                  hot: isTR ? '10+ Hücre Tipi' : '10+ Cell Types',
+                },
+                {
+                  cap: isTR ? 'Harici Bağımlılık' : 'Runtime Dependencies',
+                  sheetgl: isTR ? '0 (Sıfır Bağımlılık)' : '0 (Zero Dependencies)',
+                  ag: isTR ? 'Çekirdek + Modüller' : 'Core + Modules',
+                  dev: 'DevExtreme Core',
+                  hot: 'Pikaday, NumPy/etc.',
+                },
+              ].map((row, idx) => (
+                <tr key={idx} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>{row.cap}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 700, color: isDark ? '#34D399' : '#059669' }}>
+                    {row.sheetgl}
+                  </td>
+                  <td style={{ padding: '12px 16px', color: colors.muted }}>{row.ag}</td>
+                  <td style={{ padding: '12px 16px', color: colors.muted }}>{row.dev}</td>
+                  <td style={{ padding: '12px 16px', color: colors.muted }}>{row.hot}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* FAQ SECTION (AEO + JSON-LD Synced) */}
       <section id="faq" style={{ maxWidth: 880, margin: '0 auto', padding: '16px 24px 72px' }}>
         <h2
           style={{
@@ -1134,7 +1380,7 @@ export default function App() {
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {faqs.map((faq, idx) => (
-            <div
+            <article
               key={idx}
               style={{
                 padding: '20px 24px',
@@ -1143,13 +1389,13 @@ export default function App() {
                 border: `1px solid ${colors.border}`,
               }}
             >
-              <div style={{ fontWeight: 700, fontSize: 15.5, marginBottom: 8, color: colors.text }}>
+              <h3 style={{ fontWeight: 700, fontSize: 15.5, marginTop: 0, marginBottom: 8, color: colors.text }}>
                 {faq.q}
-              </div>
-              <div style={{ fontSize: 14, color: colors.muted, lineHeight: 1.6 }}>
+              </h3>
+              <p style={{ fontSize: 14, color: colors.muted, lineHeight: 1.6, margin: 0 }}>
                 {faq.a}
-              </div>
-            </div>
+              </p>
+            </article>
           ))}
         </div>
       </section>

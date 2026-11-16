@@ -75,6 +75,7 @@ export const COLUMN_PRESETS: Record<ColumnPresetId, string[]> = {
     'netBalance',
     'yoyGrowth',
     'isApproved',
+    'isActiveSwitch',
     'rating',
     'progress',
     'date',
@@ -94,6 +95,7 @@ export const COLUMN_PRESETS: Record<ColumnPresetId, string[]> = {
     'netBalance',
     'yoyGrowth',
     'isApproved',
+    'isActiveSwitch',
     'rating',
     'progress',
     'date',
@@ -105,6 +107,7 @@ export const COLUMN_PRESETS: Record<ColumnPresetId, string[]> = {
     'tagColor',
     'sparkline',
     'actions',
+    'exportMenu',
   ],
 };
 

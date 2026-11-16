@@ -4,6 +4,7 @@ import { NumberColumnPlugin } from './types/NumberColumn';
 import { CurrencyColumnPlugin } from './types/CurrencyColumn';
 import { PercentColumnPlugin } from './types/PercentColumn';
 import { BooleanColumnPlugin } from './types/BooleanColumn';
+import { SwitchColumnPlugin } from './types/SwitchColumn';
 import { SelectColumnPlugin } from './types/SelectColumn';
 import { DropdownColumnPlugin } from './types/DropdownColumn';
 import { MultiSelectColumnPlugin } from './types/MultiSelectColumn';
@@ -20,6 +21,7 @@ import { RatingColumnPlugin } from './types/RatingColumn';
 import { ProgressColumnPlugin } from './types/ProgressColumn';
 import { SparklineColumnPlugin } from './types/SparklineColumn';
 import { ActionColumnPlugin } from './types/ActionColumn';
+import { DropdownButtonColumnPlugin } from './types/DropdownButtonColumn';
 import { PdfColumnPlugin } from './types/PdfColumn';
 import { RfiColumnPlugin } from './types/RfiColumn';
 
@@ -33,6 +35,7 @@ export function initDefaultColumnPlugins(): void {
   ColumnTypeRegistry.register(CurrencyColumnPlugin);
   ColumnTypeRegistry.register(PercentColumnPlugin);
   ColumnTypeRegistry.register(BooleanColumnPlugin);
+  ColumnTypeRegistry.register(SwitchColumnPlugin);
   ColumnTypeRegistry.register(SelectColumnPlugin);
   ColumnTypeRegistry.register(DropdownColumnPlugin);
   ColumnTypeRegistry.register(MultiSelectColumnPlugin);
@@ -49,6 +52,7 @@ export function initDefaultColumnPlugins(): void {
   ColumnTypeRegistry.register(ProgressColumnPlugin);
   ColumnTypeRegistry.register(SparklineColumnPlugin);
   ColumnTypeRegistry.register(ActionColumnPlugin);
+  ColumnTypeRegistry.register(DropdownButtonColumnPlugin);
   ColumnTypeRegistry.register(PdfColumnPlugin);
   ColumnTypeRegistry.register(RfiColumnPlugin);
 

@@ -19,6 +19,8 @@ export interface BuildDocSectionsParams {
   colors: DocThemeColors;
   colCategoryFilter: ColumnCategory;
   onCategoryFilterChange: (cat: ColumnCategory) => void;
+  selectedColumnType: string | null;
+  onSelectColumnType: (colType: string | null, syncUrl?: boolean) => void;
 }
 
 export function buildDocSections({
@@ -27,6 +29,8 @@ export function buildDocSections({
   colors,
   colCategoryFilter,
   onCategoryFilterChange,
+  selectedColumnType,
+  onSelectColumnType,
 }: BuildDocSectionsParams): DocSection[] {
   return [
     {
@@ -50,26 +54,52 @@ export function buildDocSections({
     {
       id: 'columns',
       step: '2',
-      badgeTr: '21 SÜTUN TÜRÜ & CANLI ÖRNEKLER',
-      badgeEn: '21 COLUMN TYPES & LIVE EXAMPLES',
-      titleTr: 'Tüm Sütun Türleri Rehberi (21 Tip)',
-      titleEn: 'Complete Guide to All 21 Column Types',
+      badgeTr: `${COLUMN_GUIDES.length} SÜTUN TÜRÜ & CANLI ÖRNEKLER`,
+      badgeEn: `${COLUMN_GUIDES.length} COLUMN TYPES & LIVE EXAMPLES`,
+      titleTr: `Tüm Sütun Türleri Rehberi (${COLUMN_GUIDES.length} Tip)`,
+      titleEn: `Complete Guide to All ${COLUMN_GUIDES.length} Column Types`,
       subtitleTr:
-        'Her bir sütun türünü canlı tabloda test edin; veri yapısını, özel ayarlarını ve kod örneklerini inceleyin.',
+        'Her bir sütun türünü ayrı demo sayfasında inceleyin; veri yapısını, özel ayarlarını ve kod örneklerini test edin.',
       subtitleEn:
-        'Test every column type in the live sandbox; inspect data formats, type-specific properties, and TSX code.',
+        'Explore each column type on its own dedicated page; test data formats, type-specific properties, and TSX code.',
       subItems: [
         {
           id: 'col-playground',
           labelTr: 'Canlı Sütun Deneme Tablosu',
           labelEn: 'Live Columns Playground',
-          onSelect: () => onCategoryFilterChange('all'),
+          onSelect: () => {
+            onCategoryFilterChange('all');
+            onSelectColumnType(null, false);
+          },
         },
         ...COLUMN_GUIDES.map((g) => ({
           id: `col-type-${g.type}`,
-          labelTr: `${g.type} — ${g.titleTr.split(' (')[0]}`,
-          labelEn: `${g.type} — ${g.titleEn.split(' (')[0]}`,
-          onSelect: () => onCategoryFilterChange('all'),
+          labelTr: g.type,
+          labelEn: g.type,
+          onSelect: () => {
+            onCategoryFilterChange('all');
+            onSelectColumnType(g.type, false);
+          },
+          children: [
+            {
+              id: `col-type-${g.type}-overview`,
+              labelTr: 'Overview',
+              labelEn: 'Overview',
+              onSelect: () => {
+                onCategoryFilterChange('all');
+                onSelectColumnType(g.type, false);
+              },
+            },
+            {
+              id: `col-type-${g.type}-formatting`,
+              labelTr: 'Formatting',
+              labelEn: 'Formatting',
+              onSelect: () => {
+                onCategoryFilterChange('all');
+                onSelectColumnType(g.type, false);
+              },
+            },
+          ],
         })),
       ],
       render: () => (
@@ -79,6 +109,8 @@ export function buildDocSections({
           colors={colors}
           colCategoryFilter={colCategoryFilter}
           onCategoryFilterChange={onCategoryFilterChange}
+          selectedColumnType={selectedColumnType}
+          onSelectColumnType={onSelectColumnType}
         />
       ),
     },
@@ -148,6 +180,8 @@ export function buildDocSections({
       subItems: [
         { id: 'flt-live', labelTr: 'Canlı Gruplama & Filtre Örneği', labelEn: 'Live Grouping & Filter Demo' },
         { id: 'flt-code', labelTr: 'Gruplama & Summary Footer Kodu', labelEn: 'Grouping & Summary Footer Code' },
+        { id: 'flt-enterprise-grouping', labelTr: 'Çok Seviyeli Kontrollü Gruplama (groupBy)', labelEn: 'Enterprise Controlled Grouping (groupBy)' },
+        { id: 'flt-grouping-engine', labelTr: 'RowGroupingEngine API & Alt Toplamlar', labelEn: 'RowGroupingEngine API & Aggregations' },
       ],
       render: () => <FilteringGroupingSection isDark={isDark} isTR={isTR} colors={colors} />,
     },

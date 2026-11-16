@@ -323,7 +323,7 @@ function formatCellStructureValue(
     return `${'★'.repeat(num)}${'☆'.repeat(5 - num)} (${num})`;
   }
 
-  if (column.type === 'boolean') {
+  if (column.type === 'boolean' || column.type === 'switch') {
     const b =
       typeof rawVal === 'boolean'
         ? rawVal
@@ -435,7 +435,7 @@ export const HeaderFilterPopover: React.FC<HeaderFilterPopoverProps> = ({
     ? 'between'
     : isNumericCol
       ? '<'
-      : column.type === 'time' || column.type === 'boolean'
+      : column.type === 'time' || column.type === 'boolean' || column.type === 'switch'
         ? '='
         : 'contains';
 
@@ -1307,7 +1307,7 @@ export const HeaderFilterPopover: React.FC<HeaderFilterPopoverProps> = ({
     autoFocusRef?: React.RefObject<HTMLInputElement | null>
   ) => {
     // 1. Boolean Column -> True / False Select
-    if (column.type === 'boolean') {
+    if (column.type === 'boolean' || column.type === 'switch') {
       return (
         <select
           value={val || 'true'}

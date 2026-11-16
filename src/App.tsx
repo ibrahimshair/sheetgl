@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { SheetGL, ColumnDef, ColumnGroupDef, GridEventLogEntry, LocaleEngine, SHEETGL_VERSION } from './datagrid';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { SheetGL, ColumnDef, ColumnGroupDef, GridApi, GridEventLogEntry, LocaleEngine, SHEETGL_VERSION } from './datagrid';
 import { DocsPortal } from './DocsPortal';
 import { LandingPage } from './LandingPage';
 import { AppView, RouteState, parseLocationPath, buildRoutePath, syncSeoMeta } from './router';
@@ -253,6 +253,7 @@ function generateDemoData(count: number = 10000, fillMode: DatasetFillMode = 'po
     const progress = (i * 7) % 101;
     const rating = (i % 5) + 1;
     const isApproved = i % 3 === 0;
+    const isActiveSwitch = i % 2 === 0;
     const tags = isSparse && i % 3 === 1 ? [] : [...tagCombos[i % tagCombos.length]];
     const cutoffTime = isSparse && i % 4 === 1 ? null : cutoffTimes[i % cutoffTimes.length];
     const slug = (company || 'enterprise').toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 12);
@@ -307,6 +308,7 @@ function generateDemoData(count: number = 10000, fillMode: DatasetFillMode = 'po
       phone,
       tagColor,
       isApproved,
+      isActiveSwitch,
     });
   }
   return rows;
@@ -319,13 +321,14 @@ export function App() {
   const activeView = route.view;
   const [isDark, setIsDark] = useState<boolean>(true);
   const [lang, setLang] = useState<'tr' | 'en'>(() => LocaleEngine.detectBrowserLocaleCode());
+  const gridRef = useRef<GridApi>(null);
 
-  const navigate = useCallback((view: AppView, docSection?: string) => {
-    const nextPath = buildRoutePath(view, docSection);
+  const navigate = useCallback((view: AppView, docSection?: string, docSub?: string) => {
+    const nextPath = buildRoutePath(view, docSection, docSub);
     if (typeof window !== 'undefined' && window.location.pathname !== nextPath) {
-      window.history.pushState({ view, docSection }, '', nextPath);
+      window.history.pushState({ view, docSection, docSub }, '', nextPath);
     }
-    setRoute({ view, docSection });
+    setRoute({ view, docSection, docSub });
   }, []);
 
   useEffect(() => {
@@ -716,6 +719,14 @@ export function App() {
         filterable: true,
       },
       {
+        id: 'isActiveSwitch',
+        title: lang === 'tr' ? 'Aktif' : 'Active',
+        type: 'switch',
+        width: 95,
+        sortable: true,
+        filterable: true,
+      },
+      {
         id: 'rating',
         title: lang === 'tr' ? 'Güven Skoru' : 'Trust Score',
         type: 'rating',
@@ -825,6 +836,79 @@ export function App() {
           setSelectedRecordModal(row);
         },
       },
+      {
+        id: 'exportMenu',
+        title: lang === 'tr' ? 'Hızlı İşlemler' : 'Quick Actions',
+        type: 'dropdownbutton',
+        width: 155,
+        buttonIcon: 'tune',
+        buttonText: lang === 'tr' ? 'İşlem Seç' : 'Actions',
+        actionMenuItems: (row) => [
+          {
+            id: 'view',
+            label: lang === 'tr' ? 'Detayları Görüntüle' : 'View Details',
+            icon: 'visibility',
+            onClick: (r) => {
+              setSelectedRecordModal(r);
+              gridRef.current?.showToast?.(
+                lang === 'tr' ? `${r.company} detayı açıldı` : `Opened details for ${r.company}`,
+                'info'
+              );
+              pushEventLog('onDropdownItemClick', `View details (${r.company})`, 'info');
+            },
+          },
+          {
+            id: 'pdf',
+            label: lang === 'tr' ? 'PDF Rapor İndir' : 'Export as PDF',
+            icon: 'download',
+            onClick: (r) => {
+              gridRef.current?.showToast?.(
+                lang === 'tr' ? `${r.company} PDF raporu hazırlanıyor...` : `Exporting ${r.company} as PDF...`,
+                'success'
+              );
+              pushEventLog('onDropdownItemClick', `Export PDF (${r.company})`, 'success');
+            },
+          },
+          {
+            id: 'excel',
+            label: lang === 'tr' ? "Excel'e Aktar (XLSX)" : 'Export to Excel (XLSX)',
+            icon: 'table_view',
+            onClick: (r) => {
+              gridRef.current?.showToast?.(
+                lang === 'tr' ? `${r.company} Excel dosyası indirildi` : `Exported ${r.company} to Excel`,
+                'success'
+              );
+              pushEventLog('onDropdownItemClick', `Export Excel (${r.company})`, 'success');
+            },
+          },
+          { divider: true },
+          {
+            id: 'copy',
+            label: lang === 'tr' ? 'Hesap Kodunu Kopyala' : 'Copy Account Code',
+            icon: 'content_copy',
+            onClick: (r) => {
+              gridRef.current?.showToast?.(
+                lang === 'tr' ? `Kopyalandı: ${r.code}` : `Copied: ${r.code}`,
+                'info'
+              );
+              pushEventLog('onDropdownItemClick', `Copy code (${r.code})`, 'info');
+            },
+          },
+          {
+            id: 'archive',
+            label: lang === 'tr' ? 'Kaydı Arşivle' : 'Archive Record',
+            icon: 'delete',
+            danger: true,
+            onClick: (r) => {
+              gridRef.current?.showToast?.(
+                lang === 'tr' ? `${r.company} arşivlendi` : `Archived ${r.company}`,
+                'warning'
+              );
+              pushEventLog('onDropdownItemClick', `Archive record (${r.company})`, 'warning');
+            },
+          },
+        ],
+      },
     ],
     [lang, pushEventLog]
   );
@@ -880,7 +964,7 @@ export function App() {
       {
         id: 'financials',
         title: isTR ? 'FİNANSAL METRİKLER' : 'FINANCIAL METRICS',
-        columnIds: ['balance', 'taxRate', 'netBalance', 'yoyGrowth', 'isApproved'],
+        columnIds: ['balance', 'taxRate', 'netBalance', 'yoyGrowth', 'isApproved', 'isActiveSwitch'],
         color: gm.financials || 'emerald',
         inheritColumnColors: inherit,
       },
@@ -901,7 +985,7 @@ export function App() {
       {
         id: 'contact',
         title: isTR ? 'İLETİŞİM & AKSİYON' : 'CONTACT & ACTIONS',
-        columnIds: ['email', 'website', 'phone', 'tagColor', 'actions'],
+        columnIds: ['email', 'website', 'phone', 'tagColor', 'actions', 'exportMenu'],
         color: gm.contact || 'cyan',
         inheritColumnColors: inherit,
       },
@@ -1162,6 +1246,7 @@ export function App() {
           <>
             <div style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
               <SheetGL
+                ref={gridRef}
                 key={`studio-${wizardState.rowCount}-${wizardState.datasetFillMode}`}
                 dataSource={studioData}
                 columns={activeStudioColumns}
@@ -1371,7 +1456,8 @@ export function App() {
             isDark={isDark}
             lang={lang}
             initialSectionId={route.docSection || 'quickstart'}
-            onSectionChange={(secId) => navigate('docs', secId)}
+            initialSubPath={route.docSub}
+            onSectionChange={(secId, subPath) => navigate('docs', secId, subPath)}
             onOpenStudio={() => navigate('studio')}
             onOpenLanding={() => navigate('landing')}
             onToggleTheme={() => setIsDark((d) => !d)}

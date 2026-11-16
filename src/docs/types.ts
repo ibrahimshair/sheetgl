@@ -6,7 +6,8 @@ export interface DocsPortalProps {
   lang: 'tr' | 'en';
   initialSection?: string;
   initialSectionId?: string;
-  onSectionChange?: (sectionId: string) => void;
+  initialSubPath?: string;
+  onSectionChange?: (sectionId: string, subPath?: string) => void;
   onToggleTheme: () => void;
   onToggleLang: () => void;
   onNavigateStudio?: () => void;
@@ -20,6 +21,7 @@ export interface DocSubItem {
   labelTr: string;
   labelEn: string;
   onSelect?: () => void;
+  children?: DocSubItem[];
 }
 
 export interface DocSection {
@@ -82,7 +84,7 @@ export function getDocThemeColors(isDark: boolean): DocThemeColors {
     muted: isDark ? '#94A3B8' : '#475569',
     accent: isDark ? '#38BDF8' : '#0284C7',
     accentBg: isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(2, 132, 199, 0.1)',
-    codeBg: isDark ? '#070B14' : '#0F172A',
-    codeHeaderBg: isDark ? '#111827' : '#1E293B',
+    codeBg: isDark ? '#070B14' : '#FFFFFF',
+    codeHeaderBg: isDark ? '#111827' : '#F1F5F9',
   };
 }

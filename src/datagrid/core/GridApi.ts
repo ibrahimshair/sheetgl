@@ -98,6 +98,11 @@ export interface GridApi {
   startEditingCell?(col: number, row: number, initialChar?: string): void;
 
   /**
+   * Display a SheetGL toast notification inside the grid viewport.
+   */
+  showToast?(text: string, type?: 'info' | 'warning' | 'success'): void;
+
+  /**
    * Programmatically stop editing the active cell.
    */
   stopEditingCell?(cancel?: boolean): void;

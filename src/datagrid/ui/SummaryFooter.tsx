@@ -95,6 +95,7 @@ const SummaryCell: React.FC<SummaryCellProps> = ({
     col.id === '__selection__' ||
     col.id === '__actions__' ||
     col.type === 'action' ||
+    col.type === 'dropdownbutton' ||
     col.type === 'sparkline';
 
   const handleToggleDropdown = (e: React.MouseEvent) => {

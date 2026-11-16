@@ -220,7 +220,7 @@ export class ExportEngine {
           return `    <Cell ss:StyleID="${styleId}"><Data ss:Type="Number">${raw}</Data></Cell>`;
         }
 
-        if (type === 'boolean' || typeof raw === 'boolean') {
+        if (type === 'boolean' || type === 'switch' || typeof raw === 'boolean') {
           return `    <Cell ss:StyleID="BooleanStyle"><Data ss:Type="Boolean">${raw ? 1 : 0}</Data></Cell>`;
         }
 

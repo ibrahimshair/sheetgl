@@ -5,6 +5,9 @@ Allow: /
 User-agent: OAI-SearchBot
 Allow: /
 
+User-agent: GPTBot
+Allow: /
+
 User-agent: ChatGPT-User
 Allow: /
 
@@ -14,8 +17,14 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: anthropic-ai
+Allow: /
+
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://sheetgl.dev/sitemap.xml
-# LLMs specification: https://sheetgl.dev/llms.txt
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://sheetgl.truncgil.com/sitemap.xml
+# LLMs specification: https://sheetgl.truncgil.com/llms.txt

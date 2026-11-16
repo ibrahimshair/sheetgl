@@ -4,14 +4,14 @@
   <img src="https://raw.githubusercontent.com/umitunc/sheetgl/main/docs/logo/logo.png" alt="SheetGL Logo" width="110" height="110" />
 </a>
 
-# SheetGL v2.2.0 ⚡
+# SheetGL v2.2.6 ⚡
 
 ### **The Ultra-Fast Excel-Grade WebGL & Canvas DataGrid for React**
 
 Combine **GPU-Accelerated HTML5 Canvas Virtualization** and **Native Microsoft Excel UX** with **Enterprise DataGrid Architecture** — featuring **21 Built-in Column Types**, **Async Cascading Backend Lookups**, **Dynamic Summaries**, **Atomic Batch CRUD**, and **3-Tier Role-Based Permissions**.  
 **Zero dependencies. Zero DOM bloat. 100% Free under the MIT License.**
 
-[![Version](https://img.shields.io/badge/version-2.2.0-0284c7.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/sheetgl)
+[![Version](https://img.shields.io/badge/version-2.2.6-0284c7.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/sheetgl)
 [![NPM Downloads](https://img.shields.io/npm/dm/sheetgl.svg?style=flat-square&color=0ea5e9&logo=npm)](https://www.npmjs.com/package/sheetgl)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/sheetgl?style=flat-square&color=10b981&label=minzipped)](https://bundlephobia.com/package/sheetgl)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-10b981.svg?style=flat-square)](#)
@@ -102,7 +102,7 @@ Most React data tables force you into a painful trade-off:
 
 ---
 
-## 🌟 Key Highlights in v2.2.0
+## 🌟 Key Highlights in v2.2.6
 
 - 🏎️ **Ultra-Fast Canvas Virtualization:** Renders 10,000–100,000+ rows and dozens of columns on a single high-DPI `<canvas>` element with right-side live scroll indicators, quick jump controls (`⤒` / `⤓`), and automatic edge-scrolling during drag operations.
 - 📐 **Complete Microsoft Excel UX:**
@@ -120,6 +120,7 @@ Most React data tables force you into a painful trade-off:
   - Atomic **Batch Save**, **Discard Changes**, and 100-step **Undo / Redo (`Ctrl+Z` / `Ctrl+Y`)**.
 - 🧮 **Dynamic Summary Rows & Dual-Mode Excel Header Filters:**
   - Switch any column's footer & group summary between `SUM`, `AVG`, `MIN`, `MAX`, `COUNT`, or `NONE` at runtime, plus live Excel status bar stats (`Count`, `SUM`, `AVG`, `MIN`, `MAX`) when multiple cells are selected.
+  - **Enterprise Multi-Level Row Grouping (`groupBy` / `RowGroupingEngine`):** Group flat datasets into multi-level expandable trees with controlled `expandedGroupKeys` / `onGroupExpansionChanged` hooks and full-width Canvas group bands (`sum`, `avg`, `min`, `max`, `count`).
   - Excel Header Filter Popover with **Distinct Value Checkbox List** (preserving checked state across searches and reopenings) and **Condition Rules** (`contains`, `=`, `<>`, `>`, `<`, `between`).
 - 🎨 **Banded Column Groups & 13 Semantic Color Presets:**
   - Group related columns under top banded headers (`columnGroups`) and style headers or cells using 13 theme-adaptive palettes (`blue`, `indigo`, `violet`, `emerald`, `amber`, `rose`, `cyan`, `teal`, etc.) or custom `{ light, dark }` tokens.
@@ -143,7 +144,7 @@ Every column type is painted directly onto the HTML5 2D Canvas at 60–120 FPS a
 
 ## ⚖️ Comparison: SheetGL vs. Traditional Grids
 
-| Feature | SheetGL v2.2.0 | Traditional Enterprise Grids | AG-Grid Enterprise | Standard React Table |
+| Feature | SheetGL v2.2.6 | Traditional Enterprise Grids | AG-Grid Enterprise | Standard React Table |
 | :--- | :---: | :---: | :---: | :---: |
 | **Licensing** | **Free (MIT)** | Commercial ($1,200+/yr) | Commercial ($1,200+/yr) | Free (MIT) |
 | **Rendering Engine** | **HTML5 Canvas 2D / WebGL** | DOM Virtualization | DOM Virtualization | 100% DOM Nodes |

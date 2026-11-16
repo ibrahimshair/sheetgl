@@ -128,7 +128,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
             border: `1px solid ${colors.border}`,
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: 12.5,
-            color: '#34D399',
+            color: isDark ? '#34D399' : '#059669',
           }}
         >
           {cascadeLogs.map((l, i) => (

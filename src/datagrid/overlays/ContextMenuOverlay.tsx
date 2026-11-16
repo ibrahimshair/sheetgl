@@ -276,7 +276,9 @@ export const ContextMenuOverlay: React.FC<ContextMenuOverlayProps> = ({
       }}
     >
       {menu.targetType === 'header' && menu.column ? (
-        menu.column.type === 'sparkline' || menu.column.type === 'action' ? (
+        menu.column.type === 'sparkline' ||
+        menu.column.type === 'action' ||
+        menu.column.type === 'dropdownbutton' ? (
           <>
             <div
               style={{

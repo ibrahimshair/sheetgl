@@ -4,7 +4,6 @@ import { StreamingEngine } from '../core/StreamingEngine';
 import { IDataStore } from '../types/store';
 import { IGridThemeTokens } from '../theme/IGridTheme';
 import { ColumnTypeRegistry } from '../columns/ColumnTypeRegistry';
-import { GroupRowPainter } from './GroupRowPainter';
 import { SkeletonPainter } from './SkeletonPainter';
 import { SortDescriptor } from '../types/filter';
 import { IGridLocale } from '../i18n/IGridLocale';
@@ -228,21 +227,6 @@ export class CanvasRenderer {
           ctx.lineTo(rowNumW, rowY + rowH - 0.5);
           ctx.stroke();
 
-          continue;
-        }
-
-        if (vRow.type === 'group') {
-          GroupRowPainter.paintGroupRow(
-            ctx,
-            vRow,
-            rowY,
-            width,
-            rowH,
-            theme,
-            locale,
-            geometry.columns,
-            hoveredCell?.row === r
-          );
           continue;
         }
       }
@@ -519,6 +503,39 @@ export class CanvasRenderer {
         ctx.restore();
       }
 
+      // --- PASS 3.5 (Full-Width Group Header Bands Over Pinned Zones) ---
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, headerH, width, Math.max(0, height - headerH));
+      ctx.clip();
+
+      for (let r = startRow; r <= endRow; r++) {
+        const vRow = store.getViewRow(r);
+        if (!vRow) continue;
+        if (vRow.type === 'group' || (vRow as any).__isGroup || (vRow as any).data?.__isGroup) {
+          const rowY = headerH + r * rowH - scrollTop;
+          const groupData = (vRow as any)?.__isGroup
+            ? (vRow as any)
+            : (vRow as any)?.data?.__isGroup
+            ? (vRow as any).data
+            : vRow;
+
+          CanvasRenderer.paintGroupRowBand(
+            ctx,
+            groupData,
+            rowY,
+            width,
+            rowH,
+            theme,
+            locale,
+            geometry.columns,
+            hoveredCell?.row === r,
+            rowNumW
+          );
+        }
+      }
+      ctx.restore();
+
       // ========================================================================
       // FILL HANDLE DRAG PREVIEW RECTANGLE (Excel AutoFill Dashed Box)
       // ========================================================================
@@ -591,6 +608,7 @@ export class CanvasRenderer {
             !activeColDef ||
             activeColType === 'sparkline' ||
             activeColType === 'action' ||
+            activeColType === 'dropdownbutton' ||
             activeColType === 'pdf' ||
             this.isColumnReadonly(activeColDef, permissions);
 
@@ -1616,6 +1634,107 @@ export class CanvasRenderer {
       ctx.closePath();
       ctx.fill();
       ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Paints a full-width Group Row Band with expand/collapse toggle and level indentation.
+   */
+  public static paintGroupRowBand(
+    ctx: CanvasRenderingContext2D,
+    row: any,
+    y: number,
+    width: number,
+    height: number,
+    theme: IGridThemeTokens,
+    locale: IGridLocale,
+    columns?: ColumnDef[],
+    isHovered?: boolean,
+    rowNumW: number = 54
+  ): void {
+    ctx.save();
+
+    // 1. Full-width Group Row Band Background (slightly darker like header / groupRowBg)
+    ctx.fillStyle = isHovered
+      ? theme.isDark
+        ? 'rgba(56, 189, 248, 0.16)'
+        : 'rgba(2, 132, 199, 0.10)'
+      : theme.canvas.groupRowBg || theme.canvas.headerBg;
+    ctx.fillRect(0, y, width, height);
+
+    // 2. Bottom Border
+    ctx.strokeStyle = theme.canvas.groupRowBorder || theme.canvas.headerBorder;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, y + height - 0.5);
+    ctx.lineTo(width, y + height - 0.5);
+    ctx.stroke();
+
+    const level = row.level ?? 0;
+    const isExpanded = Boolean(row.isExpanded);
+    const field = row.groupField || row.field || '';
+    const val = row.groupValue !== undefined ? row.groupValue : (row.value ?? '');
+    const count = row.childrenCount ?? row.rowCount ?? 0;
+
+    // 3. Left Accent Bar by Level
+    ctx.fillStyle = theme.dom.accentColor;
+    ctx.fillRect(level * 6, y, 4, height);
+
+    // 4. Expand/Collapse toggle ([-] or [+])
+    // Indent the text and icon horizontally based on row.level
+    const leftOffset = Math.max(rowNumW, 20);
+    const indent = leftOffset + (level * 20);
+    const midY = y + height / 2;
+    const boxSize = 16;
+
+    ctx.fillStyle = isExpanded
+      ? theme.dom.accentColor
+      : theme.isDark
+      ? 'rgba(255,255,255,0.12)'
+      : 'rgba(0,0,0,0.08)';
+    ctx.beginPath();
+    ctx.roundRect(indent - boxSize / 2, midY - boxSize / 2, boxSize, boxSize, 3);
+    ctx.fill();
+
+    ctx.fillStyle = isExpanded ? '#FFFFFF' : theme.canvas.groupRowText;
+    ctx.font = `700 13px ${theme.fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(isExpanded ? '−' : '+', indent, midY);
+
+    // 5. Group Title: `${row.groupField}: ${row.groupValue} (${row.childrenCount})`
+    const colDef = columns?.find((c) => c.id === field);
+    const colTitle = colDef ? colDef.title.replace(' ⚡', '') : field.toUpperCase();
+    const displayVal = String(val ?? (locale?.emptyText || '(Blank)'));
+    const title = `${colTitle}: ${displayVal} (${count})`;
+
+    ctx.fillStyle = theme.canvas.groupRowText;
+    ctx.font = `700 ${theme.fontSize}px ${theme.fontFamily}`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, indent + boxSize / 2 + 10, midY);
+
+    // 6. Optional Column Aggregations on Right Side
+    const aggs = row.aggregations || row.summaries;
+    if (aggs && Object.keys(aggs).length > 0) {
+      const summaryText = Object.entries(aggs)
+        .slice(0, 4)
+        .map(([k, v]) => {
+          const sCol = columns?.find((c) => c.id === k);
+          const sTitle = sCol ? sCol.title.replace(' ⚡', '') : k;
+          const numStr = Number(v).toLocaleString(locale?.code || 'en-US', {
+            maximumFractionDigits: 2,
+          });
+          return `${sTitle}: ${sCol?.currencySymbol || ''}${numStr}`;
+        })
+        .join('   •   ');
+
+      ctx.fillStyle = theme.isDark ? '#98989D' : '#6E6E73';
+      ctx.font = `600 ${theme.fontSize - 1}px ${theme.fontFamily}`;
+      ctx.textAlign = 'right';
+      ctx.fillText(summaryText, width - 24, midY);
     }
 
     ctx.restore();

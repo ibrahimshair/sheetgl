@@ -80,7 +80,7 @@ export class GroupRowPainter {
         .map((s) => s.trim())
         .map((v) => colDef.options?.find((o) => o.value === v)?.label || v)
         .join(', ');
-    } else if (colDef?.type === 'boolean') {
+    } else if (colDef?.type === 'boolean' || colDef?.type === 'switch') {
       displayVal = groupRow.value ? locale.trueText : locale.falseText;
     } else if (
       (colDef?.type === 'date' || colDef?.type === 'datetime') &&

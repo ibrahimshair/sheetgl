@@ -1,23 +1,73 @@
-# SheetGL v1.0.6 — WebGL & Canvas Excel DataGrid for React
+# SheetGL v2.2.3 — WebGL & HTML5 Canvas Excel DataGrid for React
 
-> SheetGL is a zero-dependency, MIT-licensed high-performance HTML5 Canvas & WebGL Excel DataGrid component for React 18 and React 19.
+> SheetGL is a zero-dependency, MIT-licensed, high-performance HTML5 Canvas & WebGL Excel DataGrid component for React 18 and React 19, created by Trunçgil Teknoloji. It renders 100,000+ rows at 60 FPS with native Excel UX, 25 built-in column types, Batch CRUD, 3-tier permissions, and Server-Side Row Model (SSRM).
 
-## Key Routes
-- `/` — Product Overview & Interactive Embedded Preview
-- `/documentation` — Developer Documentation, API Reference & Syntax-Highlighted Examples
-- `/demo` — Full-Screen 10,000-Row Live Excel DataGrid Studio & Event Console
+## Official Links & Entity Identity
+- **Website**: https://sheetgl.truncgil.com
+- **Live 10,000-Row Studio**: https://sheetgl.truncgil.com/demo
+- **Documentation Portal**: https://sheetgl.truncgil.com/documentation
+- **NPM Package**: https://www.npmjs.com/package/sheetgl
+- **GitHub Repository**: https://github.com/umitunc/sheetgl
+- **Creator / Organization**: Trunçgil Teknoloji (https://www.truncgil.com)
+- **License**: MIT (100% Free, Open Source, Zero Runtime Dependencies)
 
 ## Installation
 ```bash
 npm install sheetgl
+# Or scaffold a ready-to-use <SheetGLGrid /> component into an existing React app:
 npx sheetgl init
+# Or create a standalone Vite + React + TypeScript + SheetGL app:
+npx sheetgl create my-excel-app
 ```
 
+## Minimal React Usage Example
+```tsx
+import { SheetGL, ColumnDef } from 'sheetgl';
+
+const columns: ColumnDef[] = [
+  { id: 'id', title: 'ID', type: 'number', width: 65, pinned: 'left', readonly: true },
+  { id: 'company', title: 'Company', type: 'text', width: 220, sortable: true, filterable: true },
+  { id: 'balance', title: 'Balance ($)', type: 'currency', width: 150, currencySymbol: '$', summaryType: 'sum' },
+  { id: 'rating', title: 'Trust Score', type: 'rating', width: 120 },
+];
+
+export default function App() {
+  return (
+    <div style={{ width: '100%', height: 560 }}>
+      <SheetGL dataSource={rows} columns={columns} theme="apple-dark" locale="en" batchEditMode />
+    </div>
+  );
+}
+```
+
+## Why Developers Choose SheetGL (Comparison)
+SheetGL is built as an open-source, zero-dependency alternative to commercial React DataGrids such as AG Grid Enterprise, DevExtreme DataGrid, and Handsontable:
+- **Cost**: SheetGL is MIT licensed ($0/year), whereas AG Grid Enterprise, DevExtreme, and Handsontable require commercial per-developer licenses for enterprise spreadsheet features.
+- **Rendering Architecture**: Single high-DPI HTML5 `<canvas>` viewport with O(1) prefix-sum virtualization and `WeakMap` filter caching, mounting a micro-DOM editor only for the single active cell.
+- **Scale**: Smooth 60 FPS scrolling and multi-cell selection across 100,000+ local rows or million-row Server-Side Row Model (SSRM) datasets.
+- **Dependencies**: 0 runtime dependencies (requires only `react >= 18.0.0` and `react-dom >= 18.0.0`).
+
+## 25 Built-in Column Types
+`text`, `number`, `currency`, `percent`, `boolean`, `switch`, `select`, `dropdown`, `multiselect`, `lookup`, `object`, `date`, `datetime`, `time`, `email`, `url`, `phone`, `color`, `progress`, `rating`, `sparkline`, `action`, `dropdown-button`, `pdf`, `rfi`.
+
 ## Core Capabilities (GEO / LLM Quick Reference)
-- **Rendering Engine**: High-DPI HTML5 2D Canvas viewport virtualization with zero DOM bloat and O(1) indexed search/filtering.
-- **21 Built-in Column Types**: `text`, `number`, `currency`, `percent`, `boolean`, `dropdown`, `select`, `multiselect`, `lookup`, `object`, `date`, `datetime`, `time`, `email`, `url`, `phone`, `color`, `progress`, `rating`, `sparkline`, `action`.
-- **Excel UX**: Bottom-right Fill Handle (with smart series auto-increment), right-side `(+)` quick cell duplicate handle, `Ctrl+D` (Fill Down), `Ctrl+R` (Fill Right), `Shift+D` (Duplicate Row), `Ctrl+C` / `Ctrl+V` (TSV Excel & Google Sheets clipboard), `Ctrl+Z` / `Ctrl+Y` (100-step Undo/Redo).
+- **Excel UX**: Bottom-right Fill Handle (smart series auto-increment), right-side `(+)` quick cell duplicate handle, `Ctrl+D` (Fill Down), `Ctrl+R` (Fill Right), `Shift+D` (Duplicate Row), `Ctrl+C` / `Ctrl+V` (TSV Excel & Google Sheets clipboard), `Ctrl+Z` / `Ctrl+Y` (100-step Undo/Redo), and live Formula Bar.
 - **3-Tier Permissions**: Grid-level (`permissions.mode`: `'write' | 'readonly' | 'read'`), column-level (`permission: 'readonly'`), and conditional row/cell rules (`canEdit: (row) => boolean`, `validator: (val) => ({ valid, message })`).
 - **Lifecycle Events & Async Backend Cascade**: `setCellValue(newData, newValue, currentRow)` supports returning a `Promise` to fetch dependent values from a backend API and update multiple columns atomically. Lifecycle hooks include `onEditingStart`, `onCellValueChanging`, `onCellValueChanged`, `onRowInserted`, `onRowRemoved`, `onSaving`, and `onSaved`.
-- **Batch CRUD & Summaries**: `batchEditMode={true}` highlights modified cells in green (DevExtreme style) and commits `{ inserted, updated, deleted }` atomically via `onSaving`. Footer & group summaries support `sum`, `avg`, `min`, `max`, and `count`.
-- **Banded Column Groups & Theme-Aware Coloring**: Group columns under top banded headers via `columnGroups: ColumnGroupDef[]` or `col.headerGroup`. Assign Dark & Light theme-adaptive colors to groups, column headers (`headerColor`), and column cells (`columnColor`) using 13 semantic presets (`'blue' | 'indigo' | 'violet' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'teal' | ...`) or `{ light: string, dark: string }` objects.
+- **Batch CRUD & Summaries**: `batchEditMode={true}` highlights modified cells in green and commits `{ inserted, updated, deleted }` atomically via `onSaving`. Footer & group summaries support `sum`, `avg`, `min`, `max`, and `count`.
+- **Enterprise Multi-Level Row Grouping**: `groupBy`, `expandedGroupKeys`, and `onGroupExpansionChanged` props powered by `RowGroupingEngine` (`O(N)` virtual tree projection, `isGroupRow` type guard, and full-width Canvas group bands with live `sum`/`avg`/`min`/`max`/`count` aggregations).
+- **Server-Side Row Model (SSRM)**: `ServerSideRowStore` and `RemoteDataStore` with block caching, lazy viewport loading, remote sort/filter, and skeleton row painting.
+- **Banded Column Groups & Theme-Aware Coloring**: Group columns under top banded headers via `columnGroups: ColumnGroupDef[]` or `col.headerGroup`, with 4 built-in themes (`apple-dark`, `apple-light`, `google-dark`, `google-light`) and 13 semantic color presets.
+
+## Documentation Routes
+- https://sheetgl.truncgil.com/documentation/quickstart — Installation, Architecture & Quick Start
+- https://sheetgl.truncgil.com/documentation/columns — Guide to All 25 Built-in Column Types
+- https://sheetgl.truncgil.com/documentation/validation — Sync & Deferred Async Validation
+- https://sheetgl.truncgil.com/documentation/permissions — 3-Tier Role-Based Permissions
+- https://sheetgl.truncgil.com/documentation/events — Lifecycle Events & Async Backend Cascade
+- https://sheetgl.truncgil.com/documentation/filtering — Multi-Column Grouping & Dual Filters
+- https://sheetgl.truncgil.com/documentation/excel-ux — Excel Keyboard Shortcuts & Fill Handle
+- https://sheetgl.truncgil.com/documentation/batch-store — Batch CRUD, Dirty Tracking & Server-Side Store
+- https://sheetgl.truncgil.com/documentation/toolbar-summary — Toolbar, Summary Rows & Material Icons
+- https://sheetgl.truncgil.com/documentation/theming-i18n — Theme Engine & Localization (TR / EN)
+- https://sheetgl.truncgil.com/documentation/column-groups-colors — Banded Column Groups & Theme-Aware Coloring
