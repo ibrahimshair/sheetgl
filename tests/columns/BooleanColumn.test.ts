@@ -34,7 +34,6 @@ describe('BooleanColumnPlugin & BooleanPainter', () => {
         column: defaultColumn,
         row: {},
         rowIndex: 0,
-        openEditor: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true });
@@ -51,7 +50,6 @@ describe('BooleanColumnPlugin & BooleanPainter', () => {
         column: defaultColumn,
         row: {},
         rowIndex: 0,
-        openEditor: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true });

@@ -39,7 +39,6 @@ describe('ActionColumnPlugin & paintAction', () => {
         rowIndex: 3,
         value: 101,
         setValue: vi.fn(),
-        openEditor: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true });
@@ -61,7 +60,6 @@ describe('ActionColumnPlugin & paintAction', () => {
         rowIndex: 0,
         value: 'item-99',
         setValue: vi.fn(),
-        openEditor: vi.fn(),
       });
 
       expect(result).toEqual({ handled: true });
@@ -77,7 +75,6 @@ describe('ActionColumnPlugin & paintAction', () => {
         rowIndex: 0,
         value: null,
         setValue: vi.fn(),
-        openEditor: vi.fn(),
       });
 
       expect(result).toEqual({ handled: false });
@@ -163,6 +160,7 @@ describe('ActionColumnPlugin & paintAction', () => {
       const ctx = createMockContext();
       paintAction({
         ctx,
+        value: null,
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -191,6 +189,7 @@ describe('ActionColumnPlugin & paintAction', () => {
       const ctx = createMockContext();
       paintAction({
         ctx,
+        value: null,
         column: { ...defaultColumn, buttonText: 'Detay' },
         row: {},
         rowIndex: 0,
@@ -212,6 +211,7 @@ describe('ActionColumnPlugin & paintAction', () => {
       const ctx = createMockContext();
       paintAction({
         ctx,
+        value: null,
         column: { ...defaultColumn, buttonText: 'Sil' },
         row: {},
         rowIndex: 0,
@@ -235,6 +235,7 @@ describe('ActionColumnPlugin & paintAction', () => {
       const ctx = createMockContext();
       paintAction({
         ctx,
+        value: null,
         column: defaultColumn,
         row: {},
         rowIndex: 0,
@@ -256,6 +257,7 @@ describe('ActionColumnPlugin & paintAction', () => {
       const ctx = createMockContext();
       paintAction({
         ctx,
+        value: null,
         column: defaultColumn, // isIconOnly
         row: {},
         rowIndex: 0,
