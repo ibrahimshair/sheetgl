@@ -4129,7 +4129,8 @@ export const SheetGL = forwardRef<GridApi, SheetGLProps>((
         boxSizing: 'border-box',
         overflow: activeOverlay || headerFilterState || contextMenu ? 'visible' : 'hidden',
         position: 'relative',
-        zIndex: activeOverlay || headerFilterState || contextMenu ? 60 : undefined,
+        isolation: 'isolate',
+        zIndex: activeOverlay || headerFilterState || contextMenu ? 60 : 0,
         ...style,
       }}
     >
